@@ -5,20 +5,39 @@ import com.eventflow.ingestion.model.UserPreference;
 import com.eventflow.ingestion.repository.UserPreferenceRepository;
 import com.eventflow.ingestion.service.EmailService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.kafka.annotation.DltHandler;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.annotation.RetryableTopic;
+import org.springframework.kafka.retrytopic.TopicSuffixingStrategy;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EmailNotificationConsumer {
+
+    private static final Logger log = LoggerFactory.getLogger(EmailNotificationConsumer.class);
 
     private final UserPreferenceRepository userPreferenceRepository;
     private final EmailService emailService;
 
+    public EmailNotificationConsumer(UserPreferenceRepository userPreferenceRepository, EmailService emailService) {
+        this.userPreferenceRepository = userPreferenceRepository;
+        this.emailService = emailService;
+    }
+
+    @RetryableTopic(
+            attempts = "3",
+            backoff = @Backoff(delay = 2000),
+            dltTopicSuffix = "-dlt"
+    )
     @KafkaListener(topics = "notification-email", groupId = "notification-worker-group")
     public void consumeEmailNotification(NotificationEvent event) {
         log.info("Received notification event from Kafka topic 'notification-email': {}", event);
@@ -48,5 +67,13 @@ public class EmailNotificationConsumer {
         } else {
             log.info("Email notification disabled for userId: {}", event.getUserId());
         }
+    }
+
+    @DltHandler
+    public void handleDltNotification(NotificationEvent event,
+                                      @Header(KafkaHeaders.RECEIVED_TOPIC) String topic,
+                                      @Header(value = KafkaHeaders.EXCEPTION_MESSAGE, required = false) String exceptionMessage) {
+        log.error("DEAD LETTER QUEUE (DLT): Received failed message in topic '{}'. Event payload: {}, Exception cause: {}",
+                topic, event, exceptionMessage);
     }
 }

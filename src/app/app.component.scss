@@ -1,0 +1,35 @@
+.tab-nav {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem 1.5rem 0;
+  background: #0f172a;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.tab-btn {
+  padding: 0.7rem 1.5rem;
+  border: 1px solid #334155;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: #1e293b;
+  color: #94a3b8;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover:not(.active) {
+    background: #273548;
+    color: #cbd5e1;
+  }
+
+  &.active {
+    background: #0f172a;
+    color: #38bdf8;
+    border-color: #38bdf8;
+    border-bottom: 2px solid #0f172a;
+    box-shadow: 0 -2px 8px rgba(56, 189, 248, 0.15);
+  }
+}
