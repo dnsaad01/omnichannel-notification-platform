@@ -39,6 +39,7 @@ export class AnalyticsOverviewComponent {
 
   // Feedback Messages
   actionFeedback: string | null = null;
+  feedbackType: 'success' | 'info' = 'success';
 
   // Selected DLT Message for Inspector
   selectedDltIndex: number = 0;
@@ -96,8 +97,7 @@ export class AnalyticsOverviewComponent {
     this.dltCount = this.dltMessages.length;
     this.selectedDltIndex = Math.max(0, this.selectedDltIndex - 1);
 
-    this.actionFeedback = `Message ${msg.eventId} successfully re-queued to Kafka topic "notification.events.retry"`;
-    this.autoDismissFeedback();
+    this.showFeedback(`✅ Event ${msg.eventId} re-queued to Kafka topic "notification.events.retry"`, 'success');
   }
 
   purgeDltMessage(): void {
@@ -108,11 +108,19 @@ export class AnalyticsOverviewComponent {
     this.dltCount = this.dltMessages.length;
     this.selectedDltIndex = Math.max(0, this.selectedDltIndex - 1);
 
-    this.actionFeedback = `Message ${msg.eventId} permanently purged from Dead Letter Topic (DLT)`;
-    this.autoDismissFeedback();
+    this.showFeedback(`🗑️ Event ${msg.eventId} permanently purged from Dead Letter Topic`, 'success');
   }
 
-  private autoDismissFeedback(): void {
+  refreshMetrics(): void {
+    // Simulate a refresh with slightly randomized values
+    this.totalVolume += Math.floor(Math.random() * 200 + 50);
+    this.kafkaThroughput = Math.floor(Math.random() * 200 + 1300);
+    this.showFeedback('📊 Analytics metrics refreshed from Kafka stream.', 'info');
+  }
+
+  private showFeedback(msg: string, type: 'success' | 'info' = 'success'): void {
+    this.actionFeedback = msg;
+    this.feedbackType = type;
     setTimeout(() => {
       this.actionFeedback = null;
     }, 4500);

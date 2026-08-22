@@ -2,18 +2,22 @@
   <!-- Header -->
   <header class="app-header">
     <div class="header-brand">
-      <div class="logo-icon">🚨</div>
+      <div class="logo-icon">🛠️</div>
       <div>
         <h1>DLQ Inspector &amp; Event Recovery</h1>
-        <p>Dead Letter Queue management, failure distribution analytics, and event payload re-drive editor</p>
+        <p>Dead Letter Queue management, failure analytics, and payload re-drive editor</p>
       </div>
     </div>
+    <button class="refresh-btn" (click)="refreshQueue()" [disabled]="isLoading">
+      <span *ngIf="!isLoading">🔄 Refresh Queue</span>
+      <span *ngIf="isLoading" class="spinner-container"><span class="spinner"></span> Loading...</span>
+    </button>
   </header>
 
   <!-- Toast Feedback Banner -->
-  <div *ngIf="toastMessage || actionFeedback" class="action-banner" [class.danger]="toastType === 'error'">
+  <div *ngIf="toastMessage" class="action-banner" [class.danger]="toastType === 'error'">
     <span class="banner-icon">{{ toastType === 'error' ? '⚠️' : '✅' }}</span>
-    <span class="banner-text">{{ toastMessage || actionFeedback }}</span>
+    <span class="banner-text">{{ toastMessage }}</span>
   </div>
 
   <!-- Metrics Row: 4 Percentage Failure Distribution Cards -->
@@ -80,10 +84,10 @@
         <!-- Queue Controls: Bulk Retry & Bulk Purge -->
         <div class="queue-controls">
           <button class="btn btn-retry" (click)="bulkRetry()">
-            <span>🔄 Bulk Retry {{ selectedCount > 0 ? '(' + selectedCount + ')' : '' }}</span>
+            🔄 Bulk Retry {{ selectedCount > 0 ? '(' + selectedCount + ' selected)' : '(All)' }}
           </button>
           <button class="btn btn-purge" (click)="bulkPurge()">
-            <span>🗑️ Bulk Purge {{ selectedCount > 0 ? '(' + selectedCount + ')' : '' }}</span>
+            🗑️ Bulk Purge {{ selectedCount > 0 ? '(' + selectedCount + ' selected)' : '(All)' }}
           </button>
         </div>
       </div>
@@ -123,8 +127,8 @@
           </thead>
           <tbody>
             <tr
-              *ngFor="let evt of filteredEvents; let i = index"
-              [class.selected-row]="i === selectedIndex">
+              *ngFor="let evt of filteredEvents"
+              [class.selected-row]="selectedEventId === evt.eventId">
               <td class="chk-col">
                 <input type="checkbox" [(ngModel)]="evt.selected" />
               </td>
@@ -135,15 +139,22 @@
               <td class="reason-cell">{{ evt.failureReason }}</td>
               <td class="time-cell">{{ evt.timestamp }}</td>
               <td class="action-col">
-                <button class="btn-inspect" (click)="selectEvent(i)">
-                  <span>👁️ View / Edit</span>
+                <!-- FIX: now passes evt.eventId (string), not index -->
+                <button class="btn-inspect" (click)="selectEvent(evt.eventId)">
+                  👁️ View / Edit
                 </button>
               </td>
             </tr>
 
-            <tr *ngIf="filteredEvents.length === 0">
+            <tr *ngIf="filteredEvents.length === 0 && !isLoading">
               <td colspan="6" class="empty-table-msg">
-                No dead-letter events found matching filter criteria.
+                ✅ No dead-letter events matching filter criteria. Queue may be clear.
+              </td>
+            </tr>
+
+            <tr *ngIf="isLoading">
+              <td colspan="6" class="empty-table-msg">
+                <span class="spinner-container"><span class="spinner"></span> Loading DLQ events...</span>
               </td>
             </tr>
           </tbody>
@@ -160,7 +171,7 @@
 
       <div *ngIf="!currentEvent" class="empty-editor-state">
         <span class="icon">👈</span>
-        <p>Select an event from the table on the left to inspect headers and edit payload.</p>
+        <p>Click <strong>View / Edit</strong> on any event row to inspect Kafka headers and edit the payload for re-drive.</p>
       </div>
 
       <div *ngIf="currentEvent" class="editor-content">
@@ -184,19 +195,27 @@
               <span class="h-key">Retries:</span>
               <span class="h-val">{{ currentEvent.headers.retryCount }}</span>
             </div>
+            <div class="header-item">
+              <span class="h-key">Producer:</span>
+              <span class="h-val">{{ currentEvent.headers.producerId }}</span>
+            </div>
+            <div class="header-item">
+              <span class="h-key">Channel:</span>
+              <span class="h-val">{{ currentEvent.channelId }}</span>
+            </div>
           </div>
         </div>
 
         <!-- Failure Reason Banner -->
         <div class="reason-banner">
-          <span class="reason-title">Exception Detail:</span>
+          <span class="reason-title">⚠️ Exception Detail:</span>
           <p>{{ currentEvent.failureReason }}</p>
         </div>
 
         <!-- JSON Code/Payload Editor -->
         <div class="code-editor-box">
           <div class="editor-bar">
-            <span>Payload Code Preview (JSON)</span>
+            <span>Payload Editor — Edit JSON &amp; Re-drive</span>
             <span class="lang-tag">JSON</span>
           </div>
           <textarea
@@ -209,7 +228,7 @@
 
         <!-- Update & Retry Trigger Button -->
         <button class="btn btn-redrive" (click)="updateAndRetry()">
-          <span>🚀 Update &amp; Retry Event</span>
+          🚀 Update &amp; Retry Event
         </button>
       </div>
     </div>

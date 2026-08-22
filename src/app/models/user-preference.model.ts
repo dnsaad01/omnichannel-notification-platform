@@ -5,4 +5,7 @@ export interface UserPreference {
   pushEnabled: boolean;
   emailAddress: string;
   phoneNumber: string;
+  quietHoursStart?: string;
+  quietHoursEnd?: string;
+  timezone?: string;
 }

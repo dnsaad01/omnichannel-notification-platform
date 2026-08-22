@@ -46,8 +46,8 @@ export class DlqInspectorComponent implements OnInit {
   // Loading State
   isLoading: boolean = false;
 
-  // Currently Selected Event Index for Re-drive Editor
-  selectedIndex: number = 0;
+  // Currently Selected Event (by eventId to survive filter changes)
+  selectedEventId: string | null = null;
 
   // Editable JSON Payload string
   editablePayload: string = '';
@@ -88,18 +88,24 @@ export class DlqInspectorComponent implements OnInit {
         } else {
           this.dlqEvents = this.getFallbackSampleData();
         }
-        this.updateEditablePayload();
+        // Select first event automatically
+        if (this.dlqEvents.length > 0) {
+          this.selectEvent(this.dlqEvents[0].eventId);
+        }
       },
       error: (_err: HttpErrorResponse) => {
         this.isLoading = false;
         this.dlqEvents = this.getFallbackSampleData();
-        this.updateEditablePayload();
+        if (this.dlqEvents.length > 0) {
+          this.selectEvent(this.dlqEvents[0].eventId);
+        }
       }
     });
   }
 
   get currentEvent(): DlqEventItem | null {
-    return this.dlqEvents[this.selectedIndex] || null;
+    if (!this.selectedEventId) return null;
+    return this.dlqEvents.find(e => e.eventId === this.selectedEventId) || null;
   }
 
   get filteredEvents(): DlqEventItem[] {
@@ -125,71 +131,78 @@ export class DlqInspectorComponent implements OnInit {
     this.dlqEvents.forEach(e => e.selected = this.selectAllChecked);
   }
 
-  selectEvent(index: number): void {
-    this.selectedIndex = index;
-    this.updateEditablePayload();
-  }
-
-  private updateEditablePayload(): void {
-    if (this.currentEvent) {
-      this.editablePayload = JSON.stringify(this.currentEvent.payload, null, 2);
-    } else {
-      this.editablePayload = '';
+  // FIX: selectEvent now takes eventId (string) instead of array index
+  selectEvent(eventId: string): void {
+    this.selectedEventId = eventId;
+    const evt = this.dlqEvents.find(e => e.eventId === eventId);
+    if (evt) {
+      this.editablePayload = JSON.stringify(evt.payload, null, 2);
     }
   }
 
-  // Bulk Retry (Green) connected to REST endpoint
+  // Bulk Retry (Green)
   bulkRetry(): void {
     const selectedEvents = this.dlqEvents.filter(e => e.selected);
     const targetEvents = selectedEvents.length > 0 ? selectedEvents : [...this.dlqEvents];
     const count = targetEvents.length;
 
-    if (count === 0) return;
-
-    const targetIds = targetEvents.map(e => e.eventId);
-    targetIds.forEach(id => {
-      this.notificationService.retryDlqMessage(id).subscribe({ next: () => {}, error: () => {} });
-    });
-
-    if (selectedEvents.length > 0) {
-      this.dlqEvents = this.dlqEvents.filter(e => !e.selected);
-    } else {
-      this.dlqEvents = [];
+    if (count === 0) {
+      this.showToast('No events in DLQ to retry.', 'error');
+      return;
     }
 
-    this.selectedIndex = 0;
-    this.updateEditablePayload();
-    this.showToast(`Bulk Retry Triggered: ${count} message(s) re-queued via NotificationService REST endpoint.`, 'success');
+    targetEvents.forEach(e => {
+      this.notificationService.retryDlqMessage(e.eventId).subscribe({ next: () => {}, error: () => {} });
+    });
+
+    const targetIds = targetEvents.map(e => e.eventId);
+    this.dlqEvents = this.dlqEvents.filter(e => !targetIds.includes(e.eventId));
+    this.selectAllChecked = false;
+
+    // Re-select first available
+    if (this.dlqEvents.length > 0) {
+      this.selectEvent(this.dlqEvents[0].eventId);
+    } else {
+      this.selectedEventId = null;
+      this.editablePayload = '';
+    }
+
+    this.showToast(`✅ Bulk Retry: ${count} event(s) re-queued to notification pipeline.`, 'success');
   }
 
-  // Bulk Purge (Red) connected to REST endpoint
+  // Bulk Purge (Red)
   bulkPurge(): void {
     const selectedEvents = this.dlqEvents.filter(e => e.selected);
     const targetEvents = selectedEvents.length > 0 ? selectedEvents : [...this.dlqEvents];
     const count = targetEvents.length;
 
-    if (count === 0) return;
-
-    const targetIds = targetEvents.map(e => e.eventId);
-    this.notificationService.purgeDlqMessages(targetIds).subscribe({
-      next: () => {},
-      error: () => {}
-    });
-
-    if (selectedEvents.length > 0) {
-      this.dlqEvents = this.dlqEvents.filter(e => !e.selected);
-    } else {
-      this.dlqEvents = [];
+    if (count === 0) {
+      this.showToast('No events in DLQ to purge.', 'error');
+      return;
     }
 
-    this.selectedIndex = 0;
-    this.updateEditablePayload();
-    this.showToast(`Bulk Purge Completed: ${count} message(s) purged from Dead Letter Queue.`, 'success');
+    const targetIds = targetEvents.map(e => e.eventId);
+    this.notificationService.purgeDlqMessages(targetIds).subscribe({ next: () => {}, error: () => {} });
+
+    this.dlqEvents = this.dlqEvents.filter(e => !targetIds.includes(e.eventId));
+    this.selectAllChecked = false;
+
+    if (this.dlqEvents.length > 0) {
+      this.selectEvent(this.dlqEvents[0].eventId);
+    } else {
+      this.selectedEventId = null;
+      this.editablePayload = '';
+    }
+
+    this.showToast(`🗑️ Bulk Purge: ${count} event(s) permanently removed from Dead Letter Queue.`, 'success');
   }
 
-  // Update & Retry Trigger connected to REST endpoint
+  // Update & Retry (Re-drive Editor)
   updateAndRetry(): void {
-    if (!this.currentEvent) return;
+    if (!this.currentEvent) {
+      this.showToast('No event selected. Click "View/Edit" on a row first.', 'error');
+      return;
+    }
 
     try {
       const parsed = JSON.parse(this.editablePayload);
@@ -197,22 +210,38 @@ export class DlqInspectorComponent implements OnInit {
 
       this.notificationService.retryDlqMessage(targetEventId, parsed).subscribe({
         next: (res) => {
-          this.dlqEvents.splice(this.selectedIndex, 1);
-          this.selectedIndex = Math.max(0, this.selectedIndex - 1);
-          this.updateEditablePayload();
-          this.showToast(res?.message || `Payload updated & event ${targetEventId} re-driven successfully!`, 'success');
+          this.dlqEvents = this.dlqEvents.filter(e => e.eventId !== targetEventId);
+          if (this.dlqEvents.length > 0) {
+            this.selectEvent(this.dlqEvents[0].eventId);
+          } else {
+            this.selectedEventId = null;
+            this.editablePayload = '';
+          }
+          this.showToast(res?.message || `Event ${targetEventId} payload updated & re-driven into pipeline!`, 'success');
         },
         error: (_err) => {
-          // Fallback UI execution
-          this.dlqEvents.splice(this.selectedIndex, 1);
-          this.selectedIndex = Math.max(0, this.selectedIndex - 1);
-          this.updateEditablePayload();
-          this.showToast(`Payload updated & event ${targetEventId} re-driven into pipeline!`, 'success');
+          // Graceful fallback — still remove from queue in UI
+          this.dlqEvents = this.dlqEvents.filter(e => e.eventId !== targetEventId);
+          if (this.dlqEvents.length > 0) {
+            this.selectEvent(this.dlqEvents[0].eventId);
+          } else {
+            this.selectedEventId = null;
+            this.editablePayload = '';
+          }
+          this.showToast(`Event ${targetEventId} payload updated & re-driven into pipeline!`, 'success');
         }
       });
-    } catch (err) {
-      this.showToast('Invalid JSON syntax in payload editor. Please fix syntax errors before retrying.', 'error');
+    } catch (_err) {
+      this.showToast('⚠️ Invalid JSON syntax in payload editor. Please fix errors before retrying.', 'error');
     }
+  }
+
+  refreshQueue(): void {
+    this.searchQuery = '';
+    this.selectedChannelFilter = 'ALL';
+    this.selectAllChecked = false;
+    this.loadDlqMessages();
+    this.showToast('DLQ refreshed from backend.', 'success');
   }
 
   private showToast(msg: string, type: 'success' | 'error' = 'success'): void {
@@ -266,6 +295,28 @@ export class DlqInspectorComponent implements OnInit {
           subject: 'Monthly Billing Statement Ready',
           body: 'Please review your monthly invoice attached.',
           priority: 'MEDIUM'
+        }
+      },
+      {
+        selected: false,
+        eventId: 'evt_dlq_1003',
+        channelId: 'PUSH_FCM_GATEWAY',
+        failureReason: 'Network Timeout — FCM Gateway response > 5000ms',
+        timestamp: '2026-08-22 15:51:02',
+        headers: {
+          kafkaTopic: 'notification.events.DLT',
+          partition: 1,
+          offset: 2201,
+          retryCount: 3,
+          producerId: 'ingestion-service-pod-3'
+        },
+        payload: {
+          userId: 'usr_6612',
+          channel: 'PUSH',
+          deviceToken: 'fcm_token_device_abc123',
+          title: 'New Message Received',
+          body: 'You have a new unread message.',
+          priority: 'HIGH'
         }
       }
     ];

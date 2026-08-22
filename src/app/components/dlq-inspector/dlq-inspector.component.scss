@@ -14,7 +14,11 @@
 
 /* Header */
 .app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 1.75rem;
+  gap: 1rem;
 
   .header-brand {
     display: flex;
@@ -48,6 +52,27 @@
       font-size: 0.95rem;
     }
   }
+}
+
+.refresh-btn {
+  background: rgba(56, 189, 248, 0.08);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 0.55rem 1.1rem;
+  border-radius: 9px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+
+  &:hover:not(:disabled) {
+    background: rgba(56, 189, 248, 0.16);
+    border-color: #38bdf8;
+  }
+
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 /* Feedback Banner */

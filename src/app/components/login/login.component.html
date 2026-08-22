@@ -1,0 +1,122 @@
+<div class="split-login-container">
+  <!-- Left Side: Brand Graphic & Value Props -->
+  <div class="split-brand-panel">
+    <div class="brand-overlay"></div>
+    <div class="brand-content">
+      <div class="brand-badge">
+        <span class="logo-icon">⚡</span>
+        <span class="brand-title">EventFlow Platform</span>
+      </div>
+
+      <h1 class="hero-heading">
+        Enterprise Omnichannel Notification Engine
+      </h1>
+      <p class="hero-subtext">
+        High-throughput event ingestion, real-time Kafka streaming, automated DLQ recovery, and intelligent channel fallbacks.
+      </p>
+
+      <div class="feature-pills">
+        <div class="pill">
+          <span class="pill-icon">🚀</span>
+          <span>1,420+ req/sec Throughput</span>
+        </div>
+        <div class="pill">
+          <span class="pill-icon">🛡️</span>
+          <span>Zero-Loss Dead Letter Queue</span>
+        </div>
+        <div class="pill">
+          <span class="pill-icon">⚙️</span>
+          <span>Recipient Preference Rules</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Side: Login Card & Form -->
+  <div class="split-form-panel">
+    <div class="login-card">
+      <div class="card-header">
+        <h2>Sign In to EventFlow</h2>
+        <p>Select your testing role and enter account credentials to continue</p>
+      </div>
+
+      <!-- Feedback Error Alert -->
+      <div *ngIf="errorMessage" class="alert alert-danger">
+        <span class="alert-icon">⚠️</span>
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Role Selector Toggle -->
+      <div class="role-selector-section">
+        <label class="section-label">Select Testing Role:</label>
+        <div class="role-toggle-group">
+          <button
+            type="button"
+            class="role-btn"
+            [class.active]="selectedRole === 'ADMIN'"
+            (click)="selectRole('ADMIN')">
+            <span class="role-icon">🛡️</span>
+            <span class="role-text">Admin Console</span>
+          </button>
+
+          <button
+            type="button"
+            class="role-btn"
+            [class.active]="selectedRole === 'USER'"
+            (click)="selectRole('USER')">
+            <span class="role-icon">👤</span>
+            <span class="role-text">Recipient Portal</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Form Controls -->
+      <form (ngSubmit)="onSubmit()" class="login-form">
+        <div class="form-group">
+          <label for="emailOrUserId">Email Address or User ID</label>
+          <div class="input-wrapper">
+            <span class="input-icon">👤</span>
+            <input
+              type="text"
+              id="emailOrUserId"
+              name="emailOrUserId"
+              [(ngModel)]="emailOrUserId"
+              placeholder="e.g. admin@eventflow.io or usr_1001"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="input-wrapper">
+            <span class="input-icon">🔒</span>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              [(ngModel)]="password"
+              placeholder="••••••••••••"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="submit-btn"
+          [disabled]="isLoading">
+          <span *ngIf="!isLoading">Sign In to EventFlow ➔</span>
+          <span *ngIf="isLoading" class="spinner-container">
+            <span class="spinner"></span> Authenticating...
+          </span>
+        </button>
+      </form>
+
+      <div class="card-footer">
+        <span>Protected by EventFlow RBAC Security &bull; Role: <strong>{{ selectedRole }}</strong></span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,20 +1,20 @@
 <div class="preferences-container">
-  <!-- Header -->
+  <!-- Header with Welcome Message & Active User ID -->
   <header class="app-header">
     <div class="header-brand">
       <div class="logo-icon">⚙️</div>
       <div>
-        <h1>User Preference Manager</h1>
-        <p>Search users &amp; configure notification channel preferences</p>
+        <h1>User Preference Portal</h1>
+        <p>Welcome back, <strong class="user-highlight">{{ userId || 'usr_1001' }}</strong>! Manage your notification preferences &amp; history.</p>
       </div>
     </div>
   </header>
 
   <div class="preferences-grid">
-    <!-- Search Panel -->
-    <section class="card search-card">
+    <!-- Search Panel (Shown in Admin / Lookup Mode) -->
+    <section *ngIf="!isSelfService" class="card search-card">
       <div class="card-header">
-        <h2><span class="icon">🔍</span> Lookup User</h2>
+        <h2><span class="icon">🔍</span> Recipient Directory Lookup</h2>
         <span class="badge endpoint-badge">GET /api/v1/preferences/&#123;userId&#125;</span>
       </div>
 
@@ -34,7 +34,7 @@
           class="search-btn"
           (click)="loadPreferences(userIdInput)"
           [disabled]="!userIdInput.trim() || isLoading">
-          <span *ngIf="!isLoading">Load User Preferences</span>
+          <span *ngIf="!isLoading">Load Preferences</span>
           <span *ngIf="isLoading" class="spinner-container">
             <span class="spinner"></span> Loading...
           </span>
@@ -57,7 +57,7 @@
       </div>
     </div>
 
-    <!-- Preferences Form (shown after successful load) -->
+    <!-- Preferences Form -->
     <section *ngIf="userLoaded" class="card form-card">
       <div class="card-header">
         <h2><span class="icon">📋</span> Preferences for <span class="user-id-tag">{{ userId }}</span></h2>
@@ -65,69 +65,125 @@
       </div>
 
       <form [formGroup]="preferenceForm" (ngSubmit)="savePreferences()" class="preferences-form">
-        <!-- Channel Toggles -->
-        <div class="section-label">Notification Channels</div>
-        <div class="toggles-row">
-          <label class="toggle-card" for="emailEnabled">
-            <div class="toggle-info">
-              <span class="toggle-icon">📧</span>
-              <span class="toggle-label">Email Channel</span>
-            </div>
-            <div class="toggle-switch">
-              <input type="checkbox" id="emailEnabled" formControlName="emailEnabled" />
-              <span class="slider"></span>
-            </div>
-          </label>
+        <!-- Card 1: Channel Preferences -->
+        <div class="card-section">
+          <div class="section-label">Channel Preferences &amp; Dynamic Status</div>
+          <div class="toggles-row">
+            <label class="toggle-card" for="emailEnabled" [class.enabled]="preferenceForm.value.emailEnabled">
+              <div class="toggle-info">
+                <span class="toggle-icon">📧</span>
+                <div class="toggle-text">
+                  <span class="toggle-label">Email Channel</span>
+                  <span class="dynamic-status">{{ preferenceForm.value.emailEnabled ? 'Active / Enabled' : 'Disabled' }}</span>
+                </div>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="emailEnabled" formControlName="emailEnabled" />
+                <span class="slider"></span>
+              </div>
+            </label>
 
-          <label class="toggle-card" for="smsEnabled">
-            <div class="toggle-info">
-              <span class="toggle-icon">💬</span>
-              <span class="toggle-label">SMS Channel</span>
-            </div>
-            <div class="toggle-switch">
-              <input type="checkbox" id="smsEnabled" formControlName="smsEnabled" />
-              <span class="slider"></span>
-            </div>
-          </label>
+            <label class="toggle-card" for="smsEnabled" [class.enabled]="preferenceForm.value.smsEnabled">
+              <div class="toggle-info">
+                <span class="toggle-icon">💬</span>
+                <div class="toggle-text">
+                  <span class="toggle-label">SMS Channel</span>
+                  <span class="dynamic-status">{{ preferenceForm.value.smsEnabled ? 'Active / Enabled' : 'Disabled' }}</span>
+                </div>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="smsEnabled" formControlName="smsEnabled" />
+                <span class="slider"></span>
+              </div>
+            </label>
 
-          <label class="toggle-card" for="pushEnabled">
-            <div class="toggle-info">
-              <span class="toggle-icon">🔔</span>
-              <span class="toggle-label">Push Channel</span>
-            </div>
-            <div class="toggle-switch">
-              <input type="checkbox" id="pushEnabled" formControlName="pushEnabled" />
-              <span class="slider"></span>
-            </div>
-          </label>
+            <label class="toggle-card" for="pushEnabled" [class.enabled]="preferenceForm.value.pushEnabled">
+              <div class="toggle-info">
+                <span class="toggle-icon">🔔</span>
+                <div class="toggle-text">
+                  <span class="toggle-label">Push Channel</span>
+                  <span class="dynamic-status">{{ preferenceForm.value.pushEnabled ? 'Active / Enabled' : 'Disabled' }}</span>
+                </div>
+              </div>
+              <div class="toggle-switch">
+                <input type="checkbox" id="pushEnabled" formControlName="pushEnabled" />
+                <span class="slider"></span>
+              </div>
+            </label>
+          </div>
         </div>
 
         <!-- Contact Info -->
-        <div class="section-label">Contact Information</div>
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="emailAddress">Email Address</label>
-            <div class="input-wrapper">
-              <span class="input-icon">✉️</span>
-              <input
-                type="email"
-                id="emailAddress"
-                formControlName="emailAddress"
-                placeholder="user@example.com"
-              />
+        <div class="card-section">
+          <div class="section-label">Contact Information</div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="emailAddress">Email Address</label>
+              <div class="input-wrapper">
+                <span class="input-icon">✉️</span>
+                <input
+                  type="email"
+                  id="emailAddress"
+                  formControlName="emailAddress"
+                  placeholder="user@example.com"
+                />
+              </div>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="phoneNumber">Phone Number</label>
+              <div class="input-wrapper">
+                <span class="input-icon">📱</span>
+                <input
+                  type="tel"
+                  id="phoneNumber"
+                  formControlName="phoneNumber"
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
             </div>
           </div>
+        </div>
 
-          <div class="form-group flex-1">
-            <label for="phoneNumber">Phone Number</label>
-            <div class="input-wrapper">
-              <span class="input-icon">📱</span>
-              <input
-                type="tel"
-                id="phoneNumber"
-                formControlName="phoneNumber"
-                placeholder="+1 (555) 000-0000"
-              />
+        <!-- Card 2: Quiet Hours / Do Not Disturb Card -->
+        <div class="card-section quiet-hours-section">
+          <div class="section-label">
+            🌙 Quiet Hours / Do Not Disturb (DND) Schedule
+            <span class="dnd-badge">DND Window: {{ preferenceForm.value.quietHoursStart }} to {{ preferenceForm.value.quietHoursEnd }}</span>
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="quietHoursStart">Start Time (DND Start)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🌙</span>
+                <input
+                  type="time"
+                  id="quietHoursStart"
+                  formControlName="quietHoursStart"
+                />
+              </div>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="quietHoursEnd">End Time (DND End)</label>
+              <div class="input-wrapper">
+                <span class="input-icon">☀️</span>
+                <input
+                  type="time"
+                  id="quietHoursEnd"
+                  formControlName="quietHoursEnd"
+                />
+              </div>
+            </div>
+
+            <div class="form-group flex-1">
+              <label for="timezone">Preferred Timezone</label>
+              <div class="input-wrapper">
+                <span class="input-icon">🌐</span>
+                <select id="timezone" formControlName="timezone" class="tz-select">
+                  <option *ngFor="let tz of timezones" [value]="tz.value">{{ tz.label }}</option>
+                </select>
+              </div>
             </div>
           </div>
         </div>
@@ -143,6 +199,45 @@
           </span>
         </button>
       </form>
+    </section>
+
+    <!-- Card 3: My Notification History Table -->
+    <section *ngIf="userLoaded" class="card history-card">
+      <div class="card-header">
+        <h2><span class="icon">📜</span> My Notification History</h2>
+        <span class="badge history-badge">Personal Delivery Activity Log</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="history-table">
+          <thead>
+            <tr>
+              <th>Message ID</th>
+              <th>Subject / Message Title</th>
+              <th>Channel</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of personalHistory">
+              <td class="msg-id"><code>{{ item.id }}</code></td>
+              <td class="subject-cell">{{ item.subject }}</td>
+              <td>
+                <span class="channel-pill" [class]="item.channel.toLowerCase()">
+                  {{ item.channel }}
+                </span>
+              </td>
+              <td>
+                <span class="status-tag" [class]="item.status.toLowerCase()">
+                  {{ item.status === 'FILTERED_BY_QUIET_HOURS' ? 'Filtered by Quiet Hours' : (item.status | titlecase) }}
+                </span>
+              </td>
+              <td class="time-cell">{{ item.timestamp }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </div>
 </div>

@@ -1,0 +1,29 @@
+<div class="user-portal-container">
+  <!-- Top Navigation Header -->
+  <header class="user-navbar">
+    <div class="navbar-brand">
+      <div class="logo-icon">⚡</div>
+      <div class="brand-info">
+        <span class="brand-name">EventFlow Self-Service</span>
+        <span class="portal-tag">Welcome back, <strong>{{ authService.currentUser()?.userId || 'usr_1001' }}</strong></span>
+      </div>
+    </div>
+
+    <div class="user-profile-actions">
+      <div class="user-badge">
+        <span class="avatar">👤</span>
+        <span class="user-id">User ID: {{ authService.currentUser()?.userId || 'usr_1001' }}</span>
+        <span class="role-pill">RECIPIENT</span>
+      </div>
+
+      <button class="logout-btn" (click)="logout()">
+        <span>🚪 Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- User Self-Service View -->
+  <main class="user-content">
+    <app-user-preferences [isSelfService]="true" [defaultUserId]="authService.currentUser()?.userId || 'usr_1001'"></app-user-preferences>
+  </main>
+</div>

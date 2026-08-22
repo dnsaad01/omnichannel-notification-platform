@@ -1,18 +1,18 @@
 <aside class="sidebar">
-  <!-- Brand Logo & Title -->
+  <!-- Brand Logo & Title: EventFlow Console -->
   <div class="sidebar-brand">
     <div class="logo-badge">
       <span class="logo-icon">⚡</span>
     </div>
     <div class="brand-text">
       <span class="brand-name">EventFlow</span>
-      <span class="brand-subtitle">Platform</span>
+      <span class="brand-subtitle">Console</span>
     </div>
   </div>
 
   <!-- Navigation Menu -->
   <nav class="sidebar-nav">
-    <div class="menu-label">Navigation</div>
+    <div class="menu-label">Admin Console Menu</div>
     <ul class="nav-list">
       <li *ngFor="let item of navItems">
         <button
@@ -26,15 +26,15 @@
     </ul>
   </nav>
 
-  <!-- Bottom Profile Widget -->
+  <!-- Bottom Profile Widget: Admin User Email & Logout Trigger -->
   <div class="sidebar-footer">
     <div class="profile-widget">
       <div class="avatar">
         <span>AU</span>
       </div>
       <div class="user-info">
-        <span class="user-name">Admin User</span>
-        <span class="user-role">admin&#64;eventflow.io</span>
+        <span class="user-name">Admin Console</span>
+        <span class="user-role">{{ authService.currentUser()?.email || 'admin@eventflow.io' }}</span>
       </div>
       <button class="logout-btn" (click)="logout()" title="Log out">
         <span>🚪</span>

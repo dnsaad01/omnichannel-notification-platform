@@ -1,7 +1,8 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
-export type NavTab = 'analytics' | 'dispatch' | 'templates' | 'preferences' | 'dlq' | 'optimization';
+export type NavTab = 'analytics' | 'dispatch' | 'templates' | 'dlq' | 'optimization' | 'preferences';
 
 @Component({
   selector: 'app-sidebar',
@@ -15,13 +16,15 @@ export class SidebarComponent {
   @Output() tabChange = new EventEmitter<NavTab>();
 
   navItems: { id: NavTab; label: string; icon: string }[] = [
-    { id: 'analytics', label: 'Analytics', icon: '📊' },
-    { id: 'dispatch', label: 'Notification Dispatch', icon: '🚀' },
-    { id: 'templates', label: 'Channels & Templates', icon: '💬' },
-    { id: 'dlq', label: 'DLQ Inspector', icon: '🚨' },
-    { id: 'optimization', label: 'Optimization Flow', icon: '⚡' },
-    { id: 'preferences', label: 'Recipient Preferences', icon: '⚙️' }
+    { id: 'analytics', label: 'Analytics Overview', icon: '📊' },
+    { id: 'dispatch', label: 'Notification Dispatcher', icon: '⚡' },
+    { id: 'templates', label: 'Channels & Fallback Rules', icon: '🔀' },
+    { id: 'dlq', label: 'DLQ Inspector & Recovery', icon: '🛠️' },
+    { id: 'optimization', label: 'Engagement & Sandbox', icon: '📈' },
+    { id: 'preferences', label: 'Recipient Directory', icon: '👥' }
   ];
+
+  constructor(public authService: AuthService) {}
 
   selectTab(tab: NavTab): void {
     this.activeTab = tab;
@@ -29,6 +32,6 @@ export class SidebarComponent {
   }
 
   logout(): void {
-    alert('Logged out from EventFlow Platform.');
+    this.authService.logout();
   }
 }
