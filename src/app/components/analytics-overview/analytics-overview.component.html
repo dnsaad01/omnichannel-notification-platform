@@ -1,0 +1,254 @@
+<div class="analytics-container">
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="logo-icon">📊</div>
+      <div>
+        <h1>Analytics Overview &amp; Live Feed</h1>
+        <p>Real-time Kafka event streaming, provider throughput, and Dead Letter Topic inspector</p>
+      </div>
+    </div>
+  </header>
+
+  <!-- Feedback Banner -->
+  <div *ngIf="actionFeedback" class="action-banner">
+    <span class="banner-icon">ℹ️</span>
+    <span class="banner-text">{{ actionFeedback }}</span>
+  </div>
+
+  <!-- Top Metric Cards (4 Cards) -->
+  <div class="metrics-grid">
+    <!-- Card 1: Total Volume -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Total Volume</span>
+        <span class="metric-icon">📈</span>
+      </div>
+      <div class="metric-value">{{ totalVolume | number }}</div>
+      <div class="metric-meta positive">
+        <span>+12.4% vs last hour</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Kafka Throughput -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Kafka Throughput</span>
+        <span class="metric-icon">⚡</span>
+      </div>
+      <div class="metric-value">{{ kafkaThroughput | number }} <span class="unit">req/s</span></div>
+      <div class="metric-meta neutral">
+        <span>4 partitions active</span>
+      </div>
+    </div>
+
+    <!-- Card 3: Delivery Success Rate -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Delivery Success Rate</span>
+        <span class="metric-icon">✅</span>
+      </div>
+      <div class="metric-value">{{ deliverySuccessRate }}%</div>
+      <div class="metric-meta positive">
+        <span>SLA &gt; 99.5% maintained</span>
+      </div>
+    </div>
+
+    <!-- Card 4: Failed / DLT Count -->
+    <div class="metric-card" [class.warning]="dltCount > 0">
+      <div class="metric-header">
+        <span class="metric-title">Failed / DLT Count</span>
+        <span class="metric-icon">⚠️</span>
+      </div>
+      <div class="metric-value">{{ dltCount }} <span class="unit">msgs</span></div>
+      <div class="metric-meta" [class.danger]="dltCount > 0" [class.positive]="dltCount === 0">
+        <span>{{ dltCount > 0 ? 'Action required in DLT' : 'No failed messages' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Feed & Chart Widgets -->
+  <div class="widgets-grid">
+    <!-- Live Traffic & Channel Distribution Chart Widget -->
+    <div class="card chart-card">
+      <div class="card-header">
+        <h2><span class="icon">📡</span> Kafka Live Traffic Feed &amp; Channel Distribution</h2>
+        <span class="live-pill"><span class="pulse-dot"></span> LIVE STREAMING</span>
+      </div>
+
+      <div class="chart-content">
+        <!-- Visual Bar Chart for Live Traffic -->
+        <div class="traffic-visual">
+          <div class="chart-label">Real-time Ingestion Velocity (Last 60s)</div>
+          <div class="bars-container">
+            <div class="bar-col" style="height: 45%;" title="450 req/s"></div>
+            <div class="bar-col" style="height: 60%;" title="600 req/s"></div>
+            <div class="bar-col" style="height: 80%;" title="920 req/s"></div>
+            <div class="bar-col" style="height: 55%;" title="550 req/s"></div>
+            <div class="bar-col" style="height: 95%;" title="1,420 req/s"></div>
+            <div class="bar-col" style="height: 70%;" title="780 req/s"></div>
+            <div class="bar-col" style="height: 85%;" title="980 req/s"></div>
+            <div class="bar-col" style="height: 65%;" title="690 req/s"></div>
+            <div class="bar-col active" style="height: 100%;" title="1,420 req/s (Current)"></div>
+          </div>
+        </div>
+
+        <!-- Channel Distribution Progress Bars -->
+        <div class="distribution-section">
+          <div class="chart-label">Provider Distribution &amp; Volume Share</div>
+          
+          <div class="dist-row">
+            <div class="dist-info">
+              <span class="dist-icon">📧</span>
+              <span class="dist-name">Email Channel (SMTP / Mailpit)</span>
+              <span class="dist-val">58% (74,500 msgs)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill email" style="width: 58%;"></div>
+            </div>
+          </div>
+
+          <div class="dist-row">
+            <div class="dist-info">
+              <span class="dist-icon">💬</span>
+              <span class="dist-name">SMS Channel (Twilio / SMPP)</span>
+              <span class="dist-val">27% (34,680 msgs)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill sms" style="width: 27%;"></div>
+            </div>
+          </div>
+
+          <div class="dist-row">
+            <div class="dist-info">
+              <span class="dist-icon">🔔</span>
+              <span class="dist-name">Push Channel (FCM / APNS)</span>
+              <span class="dist-val">15% (19,270 msgs)</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill push" style="width: 15%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Notifications Log Table -->
+    <div class="card log-table-card">
+      <div class="card-header">
+        <h2><span class="icon">📜</span> Recent Notifications Log</h2>
+        <span class="badge topic-badge">Topic: notification.events</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="logs-table">
+          <thead>
+            <tr>
+              <th>Event ID</th>
+              <th>Recipient</th>
+              <th>Channel</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of recentLogs">
+              <td class="event-id-cell"><code>{{ log.id }}</code></td>
+              <td>{{ log.recipient }}</td>
+              <td>
+                <span class="channel-pill" [class]="log.channel.toLowerCase()">
+                  {{ log.channel }}
+                </span>
+              </td>
+              <td>
+                <span class="priority-tag" [class]="log.priority.toLowerCase()">
+                  {{ log.priority }}
+                </span>
+              </td>
+              <td>
+                <span class="status-badge" [class]="log.status.toLowerCase()">
+                  {{ log.status }}
+                </span>
+              </td>
+              <td class="time-cell">{{ log.timestamp }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- DLT (Dead Letter Topic) Inspector Panel -->
+  <section class="card dlt-card">
+    <div class="card-header">
+      <h2>
+        <span class="icon">🚨</span> DLT (Dead Letter Topic) Inspector
+        <span class="badge count-badge">{{ dltMessages.length }} Pending</span>
+      </h2>
+      <span class="badge topic-badge dlt">Topic: notification.events.DLT</span>
+    </div>
+
+    <div *ngIf="dltMessages.length === 0" class="empty-dlt-state">
+      <span class="empty-icon">✨</span>
+      <h3>Dead Letter Topic is Empty!</h3>
+      <p>All notification events have been processed and delivered cleanly without errors.</p>
+    </div>
+
+    <div *ngIf="dltMessages.length > 0" class="dlt-layout">
+      <!-- Left: Failed Messages Selector -->
+      <div class="dlt-selector-panel">
+        <div class="panel-subtitle">Select Failed Message</div>
+        <div class="dlt-list">
+          <div
+            *ngFor="let msg of dltMessages; let i = index"
+            class="dlt-item-card"
+            [class.selected]="i === selectedDltIndex"
+            (click)="selectDltItem(i)">
+            <div class="dlt-item-header">
+              <span class="dlt-event-id">{{ msg.eventId }}</span>
+              <span class="dlt-time">{{ msg.timestamp }}</span>
+            </div>
+            <div class="dlt-item-reason">{{ msg.failureReason }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: DLT Inspector Detail Card -->
+      <div *ngIf="currentDltMessage" class="dlt-inspector-panel">
+        <div class="inspector-header">
+          <div class="header-info">
+            <span class="topic-label">FAILED EVENT</span>
+            <h3 class="event-title">{{ currentDltMessage.eventId }}</h3>
+          </div>
+          <div class="retry-badge">Retry Count: {{ currentDltMessage.retryCount }}</div>
+        </div>
+
+        <!-- Failure Reason Banner -->
+        <div class="reason-box">
+          <span class="reason-label">Failure Exception / Reason:</span>
+          <p class="reason-text">{{ currentDltMessage.failureReason }}</p>
+        </div>
+
+        <!-- Failed JSON Payload Box -->
+        <div class="payload-box">
+          <div class="payload-header">
+            <span>Failed JSON Payload (Dead Letter Queue Event)</span>
+            <span class="format-tag">JSON</span>
+          </div>
+          <pre class="json-preview"><code>{{ currentDltMessage.payloadJson }}</code></pre>
+        </div>
+
+        <!-- Inspector Action Buttons -->
+        <div class="inspector-actions">
+          <button class="action-btn requeue-btn" (click)="requeueDltMessage()">
+            <span>🔄 Re-queue (Retry)</span>
+          </button>
+          <button class="action-btn purge-btn" (click)="purgeDltMessage()">
+            <span>🗑️ Purge Message</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

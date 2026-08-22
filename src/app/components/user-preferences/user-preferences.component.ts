@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
 import { NotificationService } from '../../services/notification.service';
 import { UserPreference } from '../../models/user-preference.model';
@@ -8,54 +8,66 @@ import { UserPreference } from '../../models/user-preference.model';
 @Component({
   selector: 'app-user-preferences',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './user-preferences.component.html',
   styleUrl: './user-preferences.component.scss'
 })
-export class UserPreferencesComponent {
+export class UserPreferencesComponent implements OnInit {
   userIdInput: string = '';
   isLoading: boolean = false;
   isSaving: boolean = false;
   userLoaded: boolean = false;
-
   userId: string = '';
-  emailEnabled: boolean = false;
-  smsEnabled: boolean = false;
-  pushEnabled: boolean = false;
-  emailAddress: string = '';
-  phoneNumber: string = '';
+
+  preferenceForm!: FormGroup;
 
   successMessage: string | null = null;
   errorMessage: string | null = null;
 
-  constructor(private notificationService: NotificationService) {}
+  constructor(
+    private notificationService: NotificationService,
+    private fb: FormBuilder
+  ) {}
 
-  loadPreferences(): void {
-    if (!this.userIdInput.trim()) return;
+  ngOnInit(): void {
+    this.preferenceForm = this.fb.group({
+      emailAddress: [''],
+      phoneNumber: [''],
+      emailEnabled: [false],
+      smsEnabled: [false],
+      pushEnabled: [false]
+    });
+  }
+
+  loadPreferences(userId?: string): void {
+    const targetUserId = (userId || this.userIdInput).trim();
+    if (!targetUserId) return;
 
     this.isLoading = true;
     this.successMessage = null;
     this.errorMessage = null;
     this.userLoaded = false;
 
-    this.notificationService.getPreferences(this.userIdInput.trim()).subscribe({
+    this.notificationService.getPreferences(targetUserId).subscribe({
       next: (prefs: UserPreference) => {
         this.isLoading = false;
         this.userLoaded = true;
-        this.userId = prefs.userId;
-        this.emailEnabled = prefs.emailEnabled ?? false;
-        this.smsEnabled = prefs.smsEnabled ?? false;
-        this.pushEnabled = prefs.pushEnabled ?? false;
-        this.emailAddress = prefs.emailAddress ?? '';
-        this.phoneNumber = prefs.phoneNumber ?? '';
-        this.successMessage = `Preferences loaded for ${prefs.userId}`;
+        this.userId = prefs.userId || targetUserId;
+        this.preferenceForm.patchValue({
+          emailAddress: prefs.emailAddress ?? '',
+          phoneNumber: prefs.phoneNumber ?? '',
+          emailEnabled: prefs.emailEnabled ?? false,
+          smsEnabled: prefs.smsEnabled ?? false,
+          pushEnabled: prefs.pushEnabled ?? false
+        });
+        this.successMessage = `Preferences loaded for ${this.userId}`;
         this.autoDismissSuccess();
       },
       error: (err: HttpErrorResponse) => {
         this.isLoading = false;
         this.userLoaded = false;
         if (err.status === 404) {
-          this.errorMessage = `No preferences found for user "${this.userIdInput.trim()}".`;
+          this.errorMessage = `No preferences found for user "${targetUserId}".`;
         } else {
           this.errorMessage = err.error?.message || err.message || 'Failed to load preferences.';
         }
@@ -64,27 +76,29 @@ export class UserPreferencesComponent {
   }
 
   savePreferences(): void {
+    if (!this.userId) return;
+
     this.isSaving = true;
     this.successMessage = null;
     this.errorMessage = null;
 
-    const prefs: UserPreference = {
+    const payload: UserPreference = {
       userId: this.userId,
-      emailEnabled: this.emailEnabled,
-      smsEnabled: this.smsEnabled,
-      pushEnabled: this.pushEnabled,
-      emailAddress: this.emailAddress,
-      phoneNumber: this.phoneNumber
+      ...this.preferenceForm.value
     };
 
-    this.notificationService.updatePreferences(this.userId, prefs).subscribe({
+    this.notificationService.updatePreferences(this.userId, payload).subscribe({
       next: (updated: UserPreference) => {
         this.isSaving = false;
-        this.emailEnabled = updated.emailEnabled ?? this.emailEnabled;
-        this.smsEnabled = updated.smsEnabled ?? this.smsEnabled;
-        this.pushEnabled = updated.pushEnabled ?? this.pushEnabled;
-        this.emailAddress = updated.emailAddress ?? this.emailAddress;
-        this.phoneNumber = updated.phoneNumber ?? this.phoneNumber;
+        if (updated) {
+          this.preferenceForm.patchValue({
+            emailAddress: updated.emailAddress ?? this.preferenceForm.value.emailAddress,
+            phoneNumber: updated.phoneNumber ?? this.preferenceForm.value.phoneNumber,
+            emailEnabled: updated.emailEnabled ?? this.preferenceForm.value.emailEnabled,
+            smsEnabled: updated.smsEnabled ?? this.preferenceForm.value.smsEnabled,
+            pushEnabled: updated.pushEnabled ?? this.preferenceForm.value.pushEnabled
+          });
+        }
         this.successMessage = `Preferences saved successfully for ${this.userId}!`;
         this.autoDismissSuccess();
       },

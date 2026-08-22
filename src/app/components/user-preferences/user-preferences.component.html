@@ -15,7 +15,7 @@
     <section class="card search-card">
       <div class="card-header">
         <h2><span class="icon">🔍</span> Lookup User</h2>
-        <span class="badge endpoint-badge">GET /api/v1/preferences/{userId}</span>
+        <span class="badge endpoint-badge">GET /api/v1/preferences/&#123;userId&#125;</span>
       </div>
 
       <div class="search-bar">
@@ -27,14 +27,14 @@
             name="userIdInput"
             [(ngModel)]="userIdInput"
             placeholder="Enter User ID (e.g. user_789 or usr_1001)"
-            (keyup.enter)="loadPreferences()"
+            (keyup.enter)="loadPreferences(userIdInput)"
           />
         </div>
         <button
           class="search-btn"
-          (click)="loadPreferences()"
+          (click)="loadPreferences(userIdInput)"
           [disabled]="!userIdInput.trim() || isLoading">
-          <span *ngIf="!isLoading">🔎 Load User Preferences</span>
+          <span *ngIf="!isLoading">Load User Preferences</span>
           <span *ngIf="isLoading" class="spinner-container">
             <span class="spinner"></span> Loading...
           </span>
@@ -61,42 +61,42 @@
     <section *ngIf="userLoaded" class="card form-card">
       <div class="card-header">
         <h2><span class="icon">📋</span> Preferences for <span class="user-id-tag">{{ userId }}</span></h2>
-        <span class="badge endpoint-badge">PUT /api/v1/preferences/{userId}</span>
+        <span class="badge endpoint-badge">PUT /api/v1/preferences/&#123;userId&#125;</span>
       </div>
 
-      <div class="preferences-form">
+      <form [formGroup]="preferenceForm" (ngSubmit)="savePreferences()" class="preferences-form">
         <!-- Channel Toggles -->
         <div class="section-label">Notification Channels</div>
         <div class="toggles-row">
-          <label class="toggle-card" for="emailToggle">
+          <label class="toggle-card" for="emailEnabled">
             <div class="toggle-info">
               <span class="toggle-icon">📧</span>
-              <span class="toggle-label">Email</span>
+              <span class="toggle-label">Email Channel</span>
             </div>
             <div class="toggle-switch">
-              <input type="checkbox" id="emailToggle" [(ngModel)]="emailEnabled" />
+              <input type="checkbox" id="emailEnabled" formControlName="emailEnabled" />
               <span class="slider"></span>
             </div>
           </label>
 
-          <label class="toggle-card" for="smsToggle">
+          <label class="toggle-card" for="smsEnabled">
             <div class="toggle-info">
               <span class="toggle-icon">💬</span>
-              <span class="toggle-label">SMS</span>
+              <span class="toggle-label">SMS Channel</span>
             </div>
             <div class="toggle-switch">
-              <input type="checkbox" id="smsToggle" [(ngModel)]="smsEnabled" />
+              <input type="checkbox" id="smsEnabled" formControlName="smsEnabled" />
               <span class="slider"></span>
             </div>
           </label>
 
-          <label class="toggle-card" for="pushToggle">
+          <label class="toggle-card" for="pushEnabled">
             <div class="toggle-info">
               <span class="toggle-icon">🔔</span>
-              <span class="toggle-label">Push</span>
+              <span class="toggle-label">Push Channel</span>
             </div>
             <div class="toggle-switch">
-              <input type="checkbox" id="pushToggle" [(ngModel)]="pushEnabled" />
+              <input type="checkbox" id="pushEnabled" formControlName="pushEnabled" />
               <span class="slider"></span>
             </div>
           </label>
@@ -112,8 +112,7 @@
               <input
                 type="email"
                 id="emailAddress"
-                name="emailAddress"
-                [(ngModel)]="emailAddress"
+                formControlName="emailAddress"
                 placeholder="user@example.com"
               />
             </div>
@@ -126,8 +125,7 @@
               <input
                 type="tel"
                 id="phoneNumber"
-                name="phoneNumber"
-                [(ngModel)]="phoneNumber"
+                formControlName="phoneNumber"
                 placeholder="+1 (555) 000-0000"
               />
             </div>
@@ -136,15 +134,15 @@
 
         <!-- Save Button -->
         <button
+          type="submit"
           class="save-btn"
-          (click)="savePreferences()"
           [disabled]="isSaving">
           <span *ngIf="!isSaving">💾 Save Preferences</span>
           <span *ngIf="isSaving" class="spinner-container">
             <span class="spinner"></span> Saving...
           </span>
         </button>
-      </div>
+      </form>
     </section>
   </div>
 </div>

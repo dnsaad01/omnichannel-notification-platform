@@ -1,0 +1,44 @@
+<aside class="sidebar">
+  <!-- Brand Logo & Title -->
+  <div class="sidebar-brand">
+    <div class="logo-badge">
+      <span class="logo-icon">⚡</span>
+    </div>
+    <div class="brand-text">
+      <span class="brand-name">EventFlow</span>
+      <span class="brand-subtitle">Platform</span>
+    </div>
+  </div>
+
+  <!-- Navigation Menu -->
+  <nav class="sidebar-nav">
+    <div class="menu-label">Navigation</div>
+    <ul class="nav-list">
+      <li *ngFor="let item of navItems">
+        <button
+          class="nav-btn"
+          [class.active]="activeTab === item.id"
+          (click)="selectTab(item.id)">
+          <span class="nav-icon">{{ item.icon }}</span>
+          <span class="nav-label">{{ item.label }}</span>
+        </button>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- Bottom Profile Widget -->
+  <div class="sidebar-footer">
+    <div class="profile-widget">
+      <div class="avatar">
+        <span>AU</span>
+      </div>
+      <div class="user-info">
+        <span class="user-name">Admin User</span>
+        <span class="user-role">admin&#64;eventflow.io</span>
+      </div>
+      <button class="logout-btn" (click)="logout()" title="Log out">
+        <span>🚪</span>
+      </button>
+    </div>
+  </div>
+</aside>

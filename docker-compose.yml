@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # ---------------------------------------------------------------------------
   # 1. PostgreSQL Database (User Preferences & Client Info)
@@ -35,8 +33,8 @@ services:
     container_name: notification_mailpit
     restart: always
     ports:
-      - "8025:8025" # Web UI (To view captured emails)
-      - "1025:1025" # SMTP Server (Port Spring Boot will send emails to)
+      - "8025:8025" # Web UI
+      - "1025:1025" # SMTP Server
 
   # ---------------------------------------------------------------------------
   # 4. Apache Kafka & Zookeeper (Event Broker)
@@ -44,6 +42,7 @@ services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     container_name: notification_zookeeper
+    restart: always
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
@@ -51,6 +50,7 @@ services:
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: notification_kafka
+    restart: always
     depends_on:
       - zookeeper
     ports:
@@ -65,18 +65,43 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   # ---------------------------------------------------------------------------
-  # 5. Kafka UI (Web Dashboard to inspect topics & messages)
+  # 5. Ingestion Service (Spring Boot Application)
   # ---------------------------------------------------------------------------
-  kafka-ui:
-    image: provectuslabs/kafka-ui:latest
-    container_name: notification_kafka_ui
-    depends_on:
-      - kafka
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: notification_ingestion_service
+    restart: always
     ports:
-      - "8080:8080"
+      - "8082:8082"
     environment:
-      KAFKA_CLUSTERS_0_NAME: local-cluster
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: adminpassword
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_MAIL_HOST: mailpit
+      SPRING_MAIL_PORT: 1025
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+
+  # ---------------------------------------------------------------------------
+  # 6. Angular Frontend Web Application
+  # ---------------------------------------------------------------------------
+  angular-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: notification_angular_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - ingestion-service
 
 volumes:
   postgres_data:

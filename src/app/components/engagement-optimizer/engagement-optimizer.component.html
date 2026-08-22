@@ -1,0 +1,192 @@
+<div class="optimizer-container">
+  <!-- Header & Mode Switcher Toggle -->
+  <header class="app-header">
+    <div class="header-brand">
+      <div class="logo-icon">⚡</div>
+      <div>
+        <h1>Engagement &amp; Optimization Engine</h1>
+        <p>Smart routing logic, cost optimization, and multi-channel engagement fallbacks</p>
+      </div>
+    </div>
+
+    <!-- Sandbox Mode Toggle Button -->
+    <div class="mode-toggle-wrapper">
+      <span class="mode-label" [class.active]="!isSandboxMode">LIVE MODE</span>
+      <label class="toggle-switch">
+        <input type="checkbox" [checked]="isSandboxMode" (change)="toggleMode()" />
+        <span class="slider"></span>
+      </label>
+      <span class="mode-label" [class.active]="isSandboxMode">SANDBOX TEST MODE</span>
+    </div>
+  </header>
+
+  <!-- Sandbox Mode Banner -->
+  <div *ngIf="isSandboxMode" class="sandbox-banner">
+    <span class="banner-icon">🧪</span>
+    <div class="banner-text">
+      <strong>SANDBOX TEST MODE ACTIVE:</strong> Workflows and triggers execute in simulated dry-run mode without sending real messages or incurring gateway charges.
+    </div>
+  </div>
+
+  <!-- Top Metrics Row (4 Cards) -->
+  <div class="metrics-grid">
+    <!-- Metric 1: Total Cost -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Total Cost</span>
+        <span class="metric-icon">💰</span>
+      </div>
+      <div class="metric-value">{{ totalCost }} <span class="unit">/ mo</span></div>
+      <div class="metric-meta positive">{{ costSavings }}</div>
+    </div>
+
+    <!-- Metric 2: Open Rate % -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Open Rate %</span>
+        <span class="metric-icon">👁️</span>
+      </div>
+      <div class="metric-value">{{ openRatePct }}%</div>
+      <div class="metric-meta positive">+14.2% vs single channel</div>
+    </div>
+
+    <!-- Metric 3: Optimal Channel Ratio -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Optimal Channel Ratio</span>
+        <span class="metric-icon">⚖️</span>
+      </div>
+      <div class="metric-value ratio">{{ optimalChannelRatio }}</div>
+      <div class="metric-meta neutral">Cost-optimized routing ratio</div>
+    </div>
+
+    <!-- Metric 4: Bounce Rate % -->
+    <div class="metric-card">
+      <div class="metric-header">
+        <span class="metric-title">Bounce Rate %</span>
+        <span class="metric-icon">🎯</span>
+      </div>
+      <div class="metric-value">{{ bounceRatePct }}%</div>
+      <div class="metric-meta positive">-1.2% reduction</div>
+    </div>
+  </div>
+
+  <!-- Active Flow Logic Visualizer Card -->
+  <section class="card workflow-card">
+    <div class="card-header">
+      <h2><span class="icon">🔀</span> Active Flow Logic Visualizer</h2>
+      <span class="badge flow-badge">Rule: Smart Fallback Sequence v2.4</span>
+    </div>
+
+    <div class="workflow-description">
+      Node-based workflow path displaying smart routing logic &amp; engagement condition triggers:
+    </div>
+
+    <!-- Node-Based Workflow Visualizer Diagram -->
+    <div class="workflow-diagram">
+      <!-- Step 1: Event Ingestion -->
+      <div class="flow-node node-start" [class.sim-active]="simulationStep === 1">
+        <div class="node-icon">⚡</div>
+        <div class="node-body">
+          <div class="node-type">TRIGGER</div>
+          <div class="node-title">Notification Ingested</div>
+          <div class="node-meta">Topic: notification.events</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">➔</div>
+
+      <!-- Step 2: Primary Channel Push -->
+      <div class="flow-node node-primary" [class.sim-active]="simulationStep === 2">
+        <div class="node-icon">🔔</div>
+        <div class="node-body">
+          <div class="node-type">PRIMARY ACTION</div>
+          <div class="node-title">Send Push Notification</div>
+          <div class="node-meta">Cost: $0.001 / msg</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">➔</div>
+
+      <!-- Step 3: Condition Check -->
+      <div class="flow-node node-condition" [class.sim-active]="simulationStep === 3">
+        <div class="node-icon">⏱️</div>
+        <div class="node-body">
+          <div class="node-type">CONDITION</div>
+          <div class="node-title">Unopened after 3 hours?</div>
+          <div class="node-meta">Window: 180 mins</div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">➔</div>
+
+      <!-- Step 4: Branches Grid -->
+      <div class="branches-container">
+        <!-- Branch A: Opened -->
+        <div class="flow-branch branch-success">
+          <span class="branch-label">IF OPENED</span>
+          <div class="flow-node node-success">
+            <div class="node-icon">✅</div>
+            <div class="node-body">
+              <div class="node-type">COMPLETE</div>
+              <div class="node-title">Goal Met</div>
+              <div class="node-meta">No further action</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Branch B: Fallback SMS -->
+        <div class="flow-branch branch-fallback" [class.sim-active]="simulationStep === 4">
+          <span class="branch-label">IF UNOPENED</span>
+          <div class="flow-node node-fallback">
+            <div class="node-icon">💬</div>
+            <div class="node-body">
+              <div class="node-type">FALLBACK ACTION</div>
+              <div class="node-title">Send Fallback SMS</div>
+              <div class="node-meta">Cost: $0.015 / msg</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sandbox Simulation Controls Panel (Shown when Sandbox Mode is toggled) -->
+  <section *ngIf="isSandboxMode" class="card simulation-card">
+    <div class="card-header">
+      <h2><span class="icon">🧪</span> Sandbox Test Flow Simulator</h2>
+      <span class="badge test-badge">DRY-RUN SIMULATION</span>
+    </div>
+
+    <div class="simulation-controls">
+      <div class="form-row">
+        <div class="form-group flex-1">
+          <label>Test User ID</label>
+          <input type="text" [(ngModel)]="testUserId" class="sim-input" />
+        </div>
+        <div class="form-group flex-1">
+          <label>Initial Channel</label>
+          <select [(ngModel)]="testChannel" class="sim-select">
+            <option value="PUSH">Push Notification</option>
+            <option value="SMS">SMS Message</option>
+            <option value="EMAIL">Email</option>
+          </select>
+        </div>
+        <div class="form-group align-end">
+          <button class="btn btn-simulate" (click)="runSimulation()" [disabled]="simulating">
+            <span *ngIf="!simulating">🚀 Execute Test Flow</span>
+            <span *ngIf="simulating">Simulating...</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Simulation Logs Output -->
+      <div *ngIf="simulationLog.length > 0" class="sim-log-box">
+        <div class="log-title">Simulation Execution Timeline:</div>
+        <div *ngFor="let log of simulationLog" class="log-line">
+          {{ log }}
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
