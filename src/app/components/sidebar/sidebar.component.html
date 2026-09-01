@@ -1,0 +1,38 @@
+<aside class="w-64 bg-slate-900 text-slate-200 min-h-screen flex flex-col border-r border-slate-800">
+  <!-- Brand Header -->
+  <div class="p-6 border-b border-slate-800 flex items-center gap-3">
+    <div class="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center font-bold text-white shadow-lg shadow-indigo-500/20">
+      ON
+    </div>
+    <div>
+      <h1 class="text-sm font-semibold tracking-wide text-white">OmniChannel</h1>
+      <p class="text-xs text-slate-400">Notification Engine</p>
+    </div>
+  </div>
+
+  <!-- Navigation Links -->
+  <nav class="flex-1 px-4 py-6 space-y-1.5">
+    <a
+      *ngFor="let item of navItems"
+      [routerLink]="item.path"
+      routerLinkActive="bg-indigo-600/10 text-indigo-400 font-medium border-r-2 border-indigo-500"
+      class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-400 hover:text-slate-100 hover:bg-slate-800/60 transition-all duration-150">
+      <lucide-icon [img]="item.icon" [size]="18"></lucide-icon>
+      <span>{{ item.label }}</span>
+    </a>
+  </nav>
+
+  <!-- System Status Badge -->
+  <div class="p-4 border-t border-slate-800">
+    <div class="bg-slate-800/50 rounded-lg p-3 flex items-center gap-3 border border-slate-700/40">
+      <span class="relative flex h-2.5 w-2.5">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+      </span>
+      <div class="text-xs">
+        <p class="font-medium text-slate-200">Kafka Broker</p>
+        <p class="text-emerald-400 text-[11px]">Connected</p>
+      </div>
+    </div>
+  </div>
+</aside>
