@@ -9,44 +9,50 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalTime;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
-@Slf4j
 public class EmailNotificationConsumer {
 
-    private final UserPreferenceRepository userPreferenceRepository;
     private final EmailService emailService;
+    private final UserPreferenceRepository preferenceRepository;
 
-    @KafkaListener(topics = "notification-email", groupId = "notification-worker-group")
-    public void consumeEmailNotification(NotificationEvent event) {
-        log.info("Received notification event from Kafka topic 'notification-email': {}", event);
+    @KafkaListener(topics = "notification.email", groupId = "notification-email-group")
+    public void consume(NotificationEvent event) {
+        log.info("Received notification event for user: {}", event.getUserId());
 
-        if (event == null || event.getUserId() == null) {
-            log.warn("Received invalid or empty notification event");
-            return;
-        }
+        Optional<UserPreference> preferenceOpt = preferenceRepository.findById(event.getUserId());
 
-        Optional<UserPreference> userPrefOpt = userPreferenceRepository.findById(event.getUserId());
+        if (preferenceOpt.isPresent()) {
+            UserPreference pref = preferenceOpt.get();
 
-        if (userPrefOpt.isEmpty()) {
-            log.warn("User preference not found for userId: {}", event.getUserId());
-            return;
-        }
-
-        UserPreference userPreference = userPrefOpt.get();
-
-        if (Boolean.TRUE.equals(userPreference.getEnabledEmail())) {
-            String recipientEmail = userPreference.getEmailAddress();
-            if (recipientEmail != null && !recipientEmail.isBlank()) {
-                log.info("Email enabled for userId: {}. Dispatching email to {}", event.getUserId(), recipientEmail);
-                emailService.sendEmail(recipientEmail, event.getSubject(), event.getBody());
-            } else {
-                log.warn("Email enabled for userId: {} but email_address is missing/blank", event.getUserId());
+            if (Boolean.FALSE.equals(pref.getEnabledEmail())) {
+                log.info("Email notifications disabled for user: {}", event.getUserId());
+                return;
             }
-        } else {
-            log.info("Email notification disabled for userId: {}", event.getUserId());
+
+            if (pref.getQuietHoursStart() != null && pref.getQuietHoursEnd() != null) {
+                LocalTime now = LocalTime.now();
+                if (now.isAfter(pref.getQuietHoursStart()) && now.isBefore(pref.getQuietHoursEnd())) {
+                    if (!"HIGH".equalsIgnoreCase(event.getPriority())) {
+                        log.info("Suppressed email notification during quiet hours for user: {}", event.getUserId());
+                        return;
+                    }
+                }
+            }
+        }
+
+        String subject = event.getSubject() != null ? event.getSubject() : "Notification Alert";
+        String body = event.getBody() != null ? event.getBody() : (event.getPayload() != null ? event.getPayload().toString() : "");
+
+        try {
+            emailService.sendEmail(event.getUserId(), subject, body);
+            log.info("Successfully delivered email to user: {}", event.getUserId());
+        } catch (Exception e) {
+            log.error("Failed to send email to user: {}", event.getUserId(), e);
         }
     }
 }

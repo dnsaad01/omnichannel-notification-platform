@@ -4,7 +4,6 @@ import com.eventflow.ingestion.dtos.CostEvaluationResponse;
 import com.eventflow.ingestion.entities.ChannelMetric;
 import com.eventflow.ingestion.entities.RecipientPreference;
 import com.eventflow.ingestion.repositories.ChannelMetricRepository;
-import com.eventflow.ingestion.services.impl.CostOptimizationServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -1,9 +1,8 @@
-package com.eventflow.ingestion.services.impl;
+package com.eventflow.ingestion.services;
 
 import com.eventflow.ingestion.dtos.CostEvaluationResponse;
 import com.eventflow.ingestion.entities.RecipientPreference;
 import com.eventflow.ingestion.repositories.ChannelMetricRepository;
-import com.eventflow.ingestion.services.CostOptimizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
