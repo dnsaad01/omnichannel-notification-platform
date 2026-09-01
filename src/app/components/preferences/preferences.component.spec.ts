@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { PreferencesComponent } from './preferences.component';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 
 describe('PreferencesComponent', () => {
   let component: PreferencesComponent;
@@ -8,9 +9,12 @@ describe('PreferencesComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [PreferencesComponent]
-    })
-    .compileComponents();
+      imports: [PreferencesComponent],
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(PreferencesComponent);
     component = fixture.componentInstance;
