@@ -1,4 +1,4 @@
-package com.eventflow.ingestion.services;
+package com.eventflow.ingestion.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

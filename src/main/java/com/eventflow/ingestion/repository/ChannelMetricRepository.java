@@ -1,4 +1,4 @@
-package com.eventflow.ingestion.repositories;
+package com.eventflow.ingestion.repository;
 
 import com.eventflow.ingestion.entities.ChannelMetric;
 import org.springframework.data.jpa.repository.JpaRepository;

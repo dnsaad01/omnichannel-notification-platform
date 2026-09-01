@@ -1,7 +1,7 @@
-package com.eventflow.ingestion.services;
+package com.eventflow.ingestion.service;
 
 import com.eventflow.ingestion.entities.RecipientPreference;
-import com.eventflow.ingestion.repositories.RecipientPreferenceRepository;
+import com.eventflow.ingestion.repository.RecipientPreferenceRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
