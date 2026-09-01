@@ -24,6 +24,12 @@
         (click)="setActiveTab('simulator')">
         🧪 Rule Simulator
       </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'login'"
+        (click)="setActiveTab('login')">
+        🔑 Keycloak IAM
+      </button>
     </nav>
   </header>
 
@@ -31,5 +37,6 @@
     <app-notification-form *ngIf="activeTab === 'dispatch'"></app-notification-form>
     <app-preferences *ngIf="activeTab === 'preferences'"></app-preferences>
     <app-rule-simulator *ngIf="activeTab === 'simulator'"></app-rule-simulator>
+    <app-login *ngIf="activeTab === 'login'"></app-login>
   </main>
 </div>

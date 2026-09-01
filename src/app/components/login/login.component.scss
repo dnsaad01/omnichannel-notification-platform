@@ -1,0 +1,112 @@
+.login-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+  background: #111827;
+  border: 1px solid #1f293d;
+  border-radius: 1.25rem;
+  padding: 2.5rem;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.5);
+  text-align: center;
+}
+
+.brand-header {
+  margin-bottom: 2rem;
+
+  .logo-circle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    font-size: 1.75rem;
+    background: rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(139, 92, 246, 0.3);
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  .subtitle {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+  }
+}
+
+.card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+
+  .oidc-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(31, 41, 61, 0.5);
+    border: 1px solid #374151;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    color: #c4b5fd;
+  }
+
+  .description {
+    color: #9ca3af;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  .btn-sso {
+    width: 100%;
+    padding: 0.85rem;
+    background: #7c3aed;
+    color: #ffffff;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(:disabled) {
+      background: #6d28d9;
+      box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+  }
+
+  .realm-info {
+    display: flex;
+    justify-content: space-around;
+    padding-top: 1rem;
+    border-top: 1px solid #1f293d;
+    font-size: 0.75rem;
+    color: #6b7280;
+
+    code {
+      color: #a78bfa;
+      background: rgba(139, 92, 246, 0.1);
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.25rem;
+    }
+  }
+}

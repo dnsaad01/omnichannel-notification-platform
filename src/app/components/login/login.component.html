@@ -1,0 +1,30 @@
+<div class="login-wrapper">
+  <div class="login-card">
+    <div class="brand-header">
+      <div class="logo-circle">⚡</div>
+      <h2>EventFlow IAM</h2>
+      <p class="subtitle">Single Sign-On (SSO) Portal</p>
+    </div>
+
+    <div class="card-body">
+      <div class="oidc-badge">
+        <span class="icon">🔒</span>
+        <span>Secured by Keycloak OIDC Provider</span>
+      </div>
+
+      <p class="description">
+        Access the Omnichannel Notification Ingestion & Optimization Platform using enterprise credentials.
+      </p>
+
+      <button (click)="initiateKeycloakLogin()" [disabled]="isLoading" class="btn-sso">
+        <span *ngIf="!isLoading">🚀 Sign in with Keycloak Realm</span>
+        <span *ngIf="isLoading">Authenticating with IAM Provider...</span>
+      </button>
+
+      <div class="realm-info">
+        <span>Realm: <code>omnichannel-realm</code></span>
+        <span>Client: <code>omnichannel-frontend</code></span>
+      </div>
+    </div>
+  </div>
+</div>
