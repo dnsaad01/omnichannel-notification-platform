@@ -1,0 +1,100 @@
+<div class="simulator-grid">
+  <!-- Input Configuration Panel -->
+  <div class="panel-card">
+    <div class="card-header">
+      <div class="title-group">
+        <span class="icon">🧪</span>
+        <h2>Routing Rule Sandbox</h2>
+      </div>
+      <span class="badge">Trace Simulator</span>
+    </div>
+
+    <form (ngSubmit)="runSimulation()">
+      <div class="form-group">
+        <label>Target Recipient ID</label>
+        <div class="input-wrapper">
+          <span class="field-icon">👤</span>
+          <input type="text" [(ngModel)]="recipientId" name="recipientId" placeholder="e.g. usr_1001" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Message Priority</label>
+        <select [(ngModel)]="priority" name="priority">
+          <option value="LOW">🟢 LOW (Batch / Lowest Cost)</option>
+          <option value="NORMAL">🔵 NORMAL (Standard Opted-in)</option>
+          <option value="HIGH">🔴 HIGH (Carrier Direct / Bypass)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Estimated Payload (KB)</label>
+        <div class="input-wrapper">
+          <span class="field-icon">📦</span>
+          <input type="number" [(ngModel)]="payloadSizeKb" name="payloadSize" step="0.1" />
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button type="submit" [disabled]="isLoading" class="btn-primary">
+          {{ isLoading ? 'Evaluating Matrix...' : 'Run Simulation Trace' }}
+        </button>
+      </div>
+    </form>
+
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      ⚠️ {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- Trace & Decision Matrix Panel -->
+  <div class="panel-card">
+    <div class="card-header">
+      <div class="title-group">
+        <span class="icon">⚡</span>
+        <h2>Decision Trace Output</h2>
+      </div>
+      <span *ngIf="simulationResult" class="status-pill status-ready">Optimal Path Found</span>
+    </div>
+
+    <div *ngIf="!simulationResult && !isLoading" class="empty-state">
+      <p>Configure parameters on the left and run simulation to inspect dynamic routing heuristics.</p>
+    </div>
+
+    <div *ngIf="isLoading" class="empty-state">
+      <p>Executing policy matrix and cost optimization calculations...</p>
+    </div>
+
+    <div *ngIf="simulationResult" class="trace-content">
+      <div class="metric-row">
+        <div class="metric-box">
+          <span class="metric-label">Recommended Channel</span>
+          <span class="metric-value highlight">{{ simulationResult.recommendedChannel }}</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Estimated Cost</span>
+          <span class="metric-value">${{ simulationResult.estimatedCost | number:'1.4-4' }}</span>
+        </div>
+        <div class="metric-box">
+          <span class="metric-label">Success Rate</span>
+          <span class="metric-value text-green">{{ simulationResult.channelSuccessRate }}%</span>
+        </div>
+      </div>
+
+      <div class="rationale-box">
+        <span class="rationale-title">Engine Decision Rationale:</span>
+        <p>{{ simulationResult.rationale }}</p>
+      </div>
+
+      <div class="step-trace">
+        <span class="trace-title">Execution Steps:</span>
+        <ul>
+          <li>✅ Verified Recipient Opt-In Preferences in Redis / PostgreSQL</li>
+          <li>✅ Evaluated Active Quiet Hours Suppression Windows</li>
+          <li>✅ Calculated Cost-to-Reliability Optimization Matrix</li>
+          <li>✅ Selected Delivery Vector: <strong>{{ simulationResult.recommendedChannel }}</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

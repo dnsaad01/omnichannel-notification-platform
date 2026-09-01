@@ -1,26 +1,35 @@
-<header class="top-navbar">
-  <div class="nav-wrapper">
+<div class="app-container">
+  <header class="header">
     <div class="brand">
-      <span class="icon">⚡</span>
+      <span class="logo-icon">⚡</span>
       <h1>Omnichannel Platform</h1>
     </div>
 
     <nav class="nav-tabs">
       <button
+        class="tab-btn"
         [class.active]="activeTab === 'dispatch'"
         (click)="setActiveTab('dispatch')">
         🚀 Dispatch Console
       </button>
       <button
+        class="tab-btn"
         [class.active]="activeTab === 'preferences'"
         (click)="setActiveTab('preferences')">
         ⚙️ Recipient Preferences
       </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab === 'simulator'"
+        (click)="setActiveTab('simulator')">
+        🧪 Rule Simulator
+      </button>
     </nav>
-  </div>
-</header>
+  </header>
 
-<main class="main-content">
-  <app-notification-form *ngIf="activeTab === 'dispatch'"></app-notification-form>
-  <app-preferences *ngIf="activeTab === 'preferences'"></app-preferences>
-</main>
+  <main class="main-content">
+    <app-notification-form *ngIf="activeTab === 'dispatch'"></app-notification-form>
+    <app-preferences *ngIf="activeTab === 'preferences'"></app-preferences>
+    <app-rule-simulator *ngIf="activeTab === 'simulator'"></app-rule-simulator>
+  </main>
+</div>
