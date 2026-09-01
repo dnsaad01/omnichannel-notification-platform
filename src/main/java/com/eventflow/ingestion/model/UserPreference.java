@@ -1,7 +1,8 @@
 package com.eventflow.ingestion.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -9,43 +10,38 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 
-@Entity
-@Table(name = "user_preferences")
 @Data
+@Entity
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Table(name = "user_preferences")
 public class UserPreference {
 
-    @Id
-    @Column(name = "user_id", length = 50)
-    private String userId;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    @Column(name = "email_address", length = 150)
-    private String emailAddress;
+  private String userId;
 
-    @Column(name = "phone_number", length = 20)
-    private String phoneNumber;
+  private boolean enabledEmail;
+  private boolean enabledSms;
+  private boolean enabledPush;
 
-    @Column(name = "enabled_email")
-    private Boolean enabledEmail;
+  private LocalTime quietHoursStart;
+  private LocalTime quietHoursEnd;
 
-    @Column(name = "enabled_push")
-    private Boolean enabledPush;
+  public boolean isEnabledEmail() {
+    return enabledEmail;
+  }
 
-    @Column(name = "enabled_sms")
-    private Boolean enabledSms;
+  public boolean isEnabledSms() {
+    return enabledSms;
+  }
 
-    @Column(name = "quiet_hours_start")
-    private LocalTime quietHoursStart;
-
-    @Column(name = "quiet_hours_end")
-    private LocalTime quietHoursEnd;
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt;
-
+  public boolean isEnabledPush() {
+    return enabledPush;
+  }
 }

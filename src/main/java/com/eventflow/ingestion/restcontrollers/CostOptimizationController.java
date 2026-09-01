@@ -2,8 +2,8 @@ package com.eventflow.ingestion.restcontrollers;
 
 import com.eventflow.ingestion.dtos.CostEvaluationResponse;
 import com.eventflow.ingestion.entities.RecipientPreference;
-import com.eventflow.ingestion.repositories.RecipientPreferenceRepository;
-import com.eventflow.ingestion.services.CostOptimizationService;
+import com.eventflow.ingestion.repository.RecipientPreferenceRepository;
+import com.eventflow.ingestion.service.CostOptimizationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

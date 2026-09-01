@@ -1,4 +1,4 @@
-package com.eventflow.ingestion.services;
+package com.eventflow.ingestion.service;
 
 public interface PreferenceCheckerService {
     boolean canSendNotification(String recipientId, String channel);

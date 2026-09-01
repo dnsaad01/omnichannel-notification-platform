@@ -1,4 +1,4 @@
-package com.eventflow.ingestion.services;
+package com.eventflow.ingestion.service;
 
 import com.eventflow.ingestion.dtos.CostEvaluationResponse;
 import com.eventflow.ingestion.entities.RecipientPreference;
