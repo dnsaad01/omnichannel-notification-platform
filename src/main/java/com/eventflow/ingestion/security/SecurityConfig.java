@@ -20,6 +20,7 @@ public class SecurityConfig {
       .authorizeHttpRequests(auth -> auth
         .requestMatchers(
           "/api/v1/notifications/**",
+          "/api/v1/cost-engine/**",
           "/api/v1/costs/**",
           "/actuator/**",
           "/v3/api-docs/**",
