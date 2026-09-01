@@ -1,0 +1,51 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-xl font-bold text-white tracking-tight">System Overview</h1>
+      <p class="text-xs text-slate-400 mt-0.5">Real-time metrics and notification pipeline health</p>
+    </div>
+  </div>
+
+  <!-- KPI Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <app-kpi-card
+      title="Total Ingested"
+      value="1.28M"
+      trend="+12.4%"
+      [isPositive]="true"
+      subtitle="Total requests today"
+      [icon]="SendIcon">
+    </app-kpi-card>
+
+    <app-kpi-card
+      title="Delivery Rate"
+      value="99.82%"
+      trend="+0.3%"
+      [isPositive]="true"
+      subtitle="Across all channels"
+      [icon]="SuccessIcon">
+    </app-kpi-card>
+
+    <app-kpi-card
+      title="Avg Latency"
+      value="48ms"
+      trend="-6ms"
+      [isPositive]="true"
+      subtitle="Ingestion to Kafka"
+      [icon]="ZapIcon">
+    </app-kpi-card>
+
+    <app-kpi-card
+      title="Failed / Retries"
+      value="142"
+      trend="+1.8%"
+      [isPositive]="false"
+      subtitle="Dead-letter queue count"
+      [icon]="ErrorIcon">
+    </app-kpi-card>
+  </div>
+
+  <!-- Live Feed -->
+  <app-live-feed></app-live-feed>
+</div>
