@@ -1,0 +1,110 @@
+<div class="preferences-grid">
+  <!-- Left Column: Config Panel -->
+  <div class="panel-card">
+    <div class="card-header">
+      <div class="title-group">
+        <span class="icon">⚙️</span>
+        <h2>Recipient Rule Configuration</h2>
+      </div>
+      <span class="api-badge">GET & POST /api/v1/preferences</span>
+    </div>
+
+    <!-- Search Form -->
+    <div class="form-group">
+      <label>Recipient / User ID</label>
+      <div class="search-row">
+        <div class="input-wrapper">
+          <span class="field-icon">👤</span>
+          <input
+            type="text"
+            [(ngModel)]="searchRecipientId"
+            (keyup.enter)="onSearch()"
+            placeholder="e.g. usr_1001"
+          />
+        </div>
+        <button
+          (click)="onSearch()"
+          [disabled]="isLoading"
+          class="btn-primary">
+          {{ isLoading ? 'Checking...' : 'Fetch Rules' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div *ngIf="successMessage" class="alert alert-success">
+      ✅ {{ successMessage }}
+    </div>
+    <div *ngIf="errorMessage" class="alert alert-danger">
+      ⚠️ {{ errorMessage }}
+    </div>
+
+    <!-- Details Form -->
+    <form *ngIf="preference.recipientId" (ngSubmit)="onSave()">
+      <!-- Channels -->
+      <div class="form-group">
+        <label>Allowed Notification Channels</label>
+        <div class="channels-grid">
+          <label class="channel-checkbox">
+            <input type="checkbox" [(ngModel)]="preference.emailEnabled" name="email">
+            <span>📧 Email</span>
+          </label>
+          <label class="channel-checkbox">
+            <input type="checkbox" [(ngModel)]="preference.smsEnabled" name="sms">
+            <span>📱 SMS</span>
+          </label>
+          <label class="channel-checkbox">
+            <input type="checkbox" [(ngModel)]="preference.pushEnabled" name="push">
+            <span>🔔 Push</span>
+          </label>
+          <label class="channel-checkbox">
+            <input type="checkbox" [(ngModel)]="preference.whatsappEnabled" name="whatsapp">
+            <span>💬 WhatsApp</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Quiet Hours -->
+      <div class="form-group">
+        <label>Quiet Hours Window</label>
+        <div class="time-row">
+          <div class="time-input">
+            <span>Start Time</span>
+            <input type="time" [(ngModel)]="preference.quietHoursStart" name="start" />
+          </div>
+          <div class="time-input">
+            <span>End Time</span>
+            <input type="time" [(ngModel)]="preference.quietHoursEnd" name="end" />
+          </div>
+        </div>
+      </div>
+
+      <div class="action-row">
+        <button type="submit" [disabled]="isLoading" class="btn-success">
+          Save Recipient Preferences
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Right Column: Policy Details -->
+  <div class="panel-card">
+    <div class="card-header">
+      <div class="title-group">
+        <span class="icon">📊</span>
+        <h2>Rule Policy Overview</h2>
+      </div>
+    </div>
+    <ul class="policy-list">
+      <li>
+        <strong>• Channel Opt-In:</strong> Channels unchecked will automatically drop notification dispatches without queuing.
+      </li>
+      <li>
+        <strong>• Quiet Hours:</strong> Dispatches within the start/end window are suppressed unless flagged as emergency priorities.
+      </li>
+      <li>
+        <strong>• Redis Sync:</strong> Updates are saved to PostgreSQL and instantly refreshed in Redis cache (1h TTL).
+      </li>
+    </ul>
+  </div>
+</div>

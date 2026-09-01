@@ -1,12 +1,12 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { NotificationFormComponent } from './components/notification-form/notification-form.component';
-import { UserPreferencesComponent } from './components/user-preferences/user-preferences.component';
+import { PreferencesComponent } from './components/preferences/preferences.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, NotificationFormComponent, UserPreferencesComponent],
+  imports: [CommonModule, NotificationFormComponent, PreferencesComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })

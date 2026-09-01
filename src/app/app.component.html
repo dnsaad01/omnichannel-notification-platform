@@ -1,17 +1,26 @@
-<div class="tab-nav">
-  <button
-    class="tab-btn"
-    [class.active]="activeTab === 'dispatch'"
-    (click)="setActiveTab('dispatch')">
-    🚀 Notification Dispatcher
-  </button>
-  <button
-    class="tab-btn"
-    [class.active]="activeTab === 'preferences'"
-    (click)="setActiveTab('preferences')">
-    ⚙️ User Preferences
-  </button>
-</div>
+<header class="top-navbar">
+  <div class="nav-wrapper">
+    <div class="brand">
+      <span class="icon">⚡</span>
+      <h1>Omnichannel Platform</h1>
+    </div>
 
-<app-notification-form *ngIf="activeTab === 'dispatch'"></app-notification-form>
-<app-user-preferences *ngIf="activeTab === 'preferences'"></app-user-preferences>
+    <nav class="nav-tabs">
+      <button
+        [class.active]="activeTab === 'dispatch'"
+        (click)="setActiveTab('dispatch')">
+        🚀 Dispatch Console
+      </button>
+      <button
+        [class.active]="activeTab === 'preferences'"
+        (click)="setActiveTab('preferences')">
+        ⚙️ Recipient Preferences
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main class="main-content">
+  <app-notification-form *ngIf="activeTab === 'dispatch'"></app-notification-form>
+  <app-preferences *ngIf="activeTab === 'preferences'"></app-preferences>
+</main>
