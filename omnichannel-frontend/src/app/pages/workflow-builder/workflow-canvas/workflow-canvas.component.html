@@ -1,0 +1,71 @@
+<!--
+  See the top of workflow-canvas.component.ts for the full account of what
+  was wrong and how it was verified — this markup is now checked directly
+  against ngx-vflow's real template.directive.ts / node.component.html
+  (cloned from github.com/artem-mangilev/ngx-vflow), not guessed:
+    - `nodeHtml` is the real custom-node template selector (was
+      `nodeTemplate`, which doesn't exist).
+    - The template context is bound as bare `let-ctx` ($implicit), then
+      `ctx.node` / `ctx.data()` / `ctx.selected()` — data is a signal, so
+      it's called, not read as a plain property.
+    - Each node needs a `[selectable]` directive on an element inside it to
+      become clickable-to-select at all (the library's own foreignObject
+      wrapper only calls `pullNode()` for html-template nodes, not
+      `selectNode()`); background-click-to-deselect is already automatic
+      (DefaultSelectionStrategy) and needs nothing from us.
+    - `<handle>` elements are what make a node's edges connectable at all —
+      the previous version had none, so no handle to actually drag a
+      connection from/to ever existed on screen.
+-->
+<div
+  #canvasHost
+  class="relative w-full h-full bg-gray-950 rounded-xl border border-gray-800 overflow-hidden"
+  (dragover)="onDragOver($event)"
+  (drop)="onDrop($event)">
+
+  <vflow
+    [nodes]="vNodes"
+    [edges]="vEdges"
+    (nodesChanges.select)="onNodesSelectChange($event)"
+    (nodeDragEnd)="onNodeDragEnd($event)"
+    (connect)="onConnect($event)">
+
+    <ng-template let-ctx nodeHtml>
+      <div
+        selectable
+        class="relative bg-gray-900 border border-gray-700 border-l-4 rounded-lg px-3 py-2 w-full h-full shadow-lg cursor-pointer transition overflow-hidden box-border"
+        [style.border-left-color]="getNodeColor(ctx.data().type)"
+        [class.ring-2]="ctx.node.id === selectedNodeId"
+        [class.ring-orange-500]="ctx.node.id === selectedNodeId">
+        <div class="text-[10px] font-semibold text-gray-500 uppercase">{{ ctx.data().type }}</div>
+        <div class="text-sm text-gray-100 font-medium truncate">{{ ctx.data().name }}</div>
+
+        <!-- Connection points — shape depends on the node's role in the
+             graph (a TRIGGER has nothing feeding into it, an END has
+             nothing leaving it, a GATEWAY needs two independently
+             addressable outputs for its yes/no branches). -->
+        <ng-container [ngSwitch]="ctx.data().type">
+          <ng-container *ngSwitchCase="'TRIGGER'">
+            <handle type="source" position="right" />
+          </ng-container>
+          <ng-container *ngSwitchCase="'GATEWAY'">
+            <handle type="target" position="left" />
+            <handle type="source" position="bottom" id="yes" />
+            <handle type="source" position="top" id="no" />
+          </ng-container>
+          <ng-container *ngSwitchCase="'END'">
+            <handle type="target" position="left" />
+          </ng-container>
+          <ng-container *ngSwitchDefault>
+            <handle type="target" position="left" />
+            <handle type="source" position="right" />
+          </ng-container>
+        </ng-container>
+      </div>
+    </ng-template>
+  </vflow>
+
+  <div *ngIf="nodes.length === 0" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+    <p class="text-sm text-gray-600">Glissez un nœud depuis la palette pour commencer</p>
+  </div>
+</div>

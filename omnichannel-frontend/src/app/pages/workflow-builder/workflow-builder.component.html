@@ -1,0 +1,86 @@
+<div class="flex flex-col h-full space-y-4">
+  <!-- Toast -->
+  <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-emerald-100 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all">
+    <span>{{ toastMessage }}</span>
+    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white font-bold ml-2">✕</button>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="border-b border-gray-800 pb-4 space-y-3 shrink-0">
+    <div class="flex items-center justify-between">
+      <a routerLink="/workflows" class="text-xs text-gray-500 hover:text-gray-300">← Retour aux workflows</a>
+      <div class="flex items-center space-x-2">
+        <span *ngIf="status" [ngClass]="statusBadgeClass(status)" class="text-xs px-2.5 py-1 rounded-full font-medium">{{ status }}</span>
+        <span *ngIf="triggerEventType" class="text-xs px-2.5 py-1 rounded-full font-mono bg-gray-800 text-gray-300 border border-gray-700">{{ triggerEventType }}</span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div class="flex items-center space-x-3 flex-1 min-w-[280px]">
+        <input
+          type="text"
+          [(ngModel)]="name"
+          placeholder="Nom du workflow"
+          class="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-lg font-bold text-white focus:outline-none focus:border-orange-600 flex-1 min-w-[200px]" />
+        <input
+          type="text"
+          [(ngModel)]="description"
+          placeholder="Description (optionnel)"
+          class="bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-300 focus:outline-none focus:border-orange-600 flex-1 min-w-[200px]" />
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button
+          (click)="onSave()"
+          [disabled]="isSaving"
+          class="bg-orange-600 hover:bg-orange-500 disabled:opacity-50 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+          {{ isSaving ? '⏳ Enregistrement…' : '💾 Enregistrer' }}
+        </button>
+        <button
+          *ngIf="isEditMode && status !== 'ACTIVE'"
+          (click)="activate()"
+          class="bg-emerald-700 hover:bg-emerald-600 text-white text-sm px-4 py-2 rounded-lg transition font-medium">
+          ✅ Activer
+        </button>
+        <button
+          *ngIf="isEditMode && status === 'ACTIVE'"
+          (click)="deactivate()"
+          class="bg-gray-800 hover:bg-gray-700 text-white text-sm px-4 py-2 rounded-lg border border-gray-700 transition font-medium">
+          ⏸️ Désactiver
+        </button>
+      </div>
+    </div>
+
+    <div *ngIf="errorMessage" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm">
+      ⚠️ {{ errorMessage }}
+    </div>
+  </div>
+
+  <!-- 3-pane layout -->
+  <div class="flex-1 flex space-x-4 min-h-[600px]" *ngIf="!isLoading; else loadingState">
+    <app-node-palette />
+
+    <div class="flex-1">
+      <app-workflow-canvas
+        [nodes]="graph.nodes"
+        [edges]="graph.edges"
+        [selectedNodeId]="selectedNodeId"
+        (nodeSelected)="onNodeSelected($event)"
+        (nodeMoved)="onNodeMoved($event)"
+        (nodeDropped)="onNodeDropped($event)"
+        (connectionCreated)="onConnectionCreated($event)"
+        class="block h-full" />
+    </div>
+
+    <app-node-config-panel
+      [node]="selectedNode"
+      [templates]="templates"
+      (nameChange)="onNodeNameChange($event)"
+      (configChange)="onNodeConfigChange($event)"
+      (deleteNode)="onDeleteNode()" />
+  </div>
+
+  <ng-template #loadingState>
+    <div class="flex-1 flex items-center justify-center text-gray-500">Chargement du workflow…</div>
+  </ng-template>
+</div>
