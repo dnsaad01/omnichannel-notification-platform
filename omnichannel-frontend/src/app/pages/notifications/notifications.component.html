@@ -86,6 +86,31 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls: page/size/totalElements/totalPages all come
+           from GET /api/dashboard/logs/page (see NotificationService
+           #getRecentLogsPage) — real backend pagination, not a client-side
+           slice of a single capped fetch. -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-gray-800">
+        <span class="text-xs text-gray-500">
+          Page {{ totalPages > 0 ? currentPage + 1 : 0 }} sur {{ totalPages }}
+          — {{ totalElements }} notification{{ totalElements > 1 ? 's' : '' }} au total
+        </span>
+        <div class="flex items-center space-x-2">
+          <button
+            (click)="goToPreviousPage()"
+            [disabled]="currentPage === 0 || isLoading"
+            class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition">
+            ← Précédent
+          </button>
+          <button
+            (click)="goToNextPage()"
+            [disabled]="currentPage + 1 >= totalPages || isLoading"
+            class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-gray-800 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition">
+            Suivant →
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Right: Detailed Inspector Panel -->

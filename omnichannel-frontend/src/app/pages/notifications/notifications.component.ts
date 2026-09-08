@@ -8,14 +8,19 @@ import { NotificationLogEntry } from '../../models/notification-log.model';
  *  (see its own POLL_INTERVAL_MS) — kept identical for consistency. */
 const POLL_INTERVAL_MS = 5000;
 
-/** How long to wait after a successful POST /send before refreshing, so the
- *  matching channel consumer (EmailNotificationConsumer/etc.) has had a
- *  realistic chance to actually process the Kafka message and write its
- *  notification_logs row — the log endpoint only ever reflects rows that
- *  already exist, it can't show a dispatch that hasn't been consumed yet.
- *  The regular POLL_INTERVAL_MS sweep will pick it up regardless even if
- *  this fires a beat too early. */
+/** How long to wait after a successful POST /send (or /resend) before
+ *  refreshing again, so the matching channel consumer
+ *  (EmailNotificationConsumer/etc.) has had a realistic chance to actually
+ *  process the Kafka message and write its notification_logs row — the log
+ *  endpoint only ever reflects rows that already exist, it can't show a
+ *  dispatch that hasn't been consumed yet. The regular POLL_INTERVAL_MS
+ *  sweep will pick it up regardless even if this fires a beat too early. */
 const POST_SEND_REFRESH_DELAY_MS = 1500;
+
+/** Default page size for the "Journal des envois" table — matches the old
+ *  hardcoded getRecentLogs(50) call this replaces, so the table's default
+ *  density doesn't change, only its ability to reach the rows past 50. */
+const DEFAULT_PAGE_SIZE = 50;
 
 @Component({
   selector: 'app-notifications',
@@ -32,13 +37,31 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     this.showSendForm = !this.showSendForm;
   }
 
-  /** Real data only from here on — GET /api/dashboard/logs via
-   *  NotificationService#getRecentLogs (see that method's doc comment for
-   *  why the dashboard endpoint, not a nonexistent GET /api/v1/notifications).
-   *  Starts empty and is populated by the first fetchLogs() in ngOnInit. */
+  /** Real data only from here on — GET /api/dashboard/logs/page via
+   *  NotificationService#getRecentLogsPage (see that method's doc comment
+   *  for why the paginated dashboard endpoint, not a nonexistent
+   *  GET /api/v1/notifications). allNotifications only ever holds the
+   *  CURRENT page's rows, not the whole table — see the pagination state
+   *  below. Starts empty and is populated by the first fetchLogs() in
+   *  ngOnInit. */
   allNotifications: NotificationLogEntry[] = [];
   isLoading: boolean = false;
   loadError: string | null = null;
+
+  // --- Pagination state ---
+  // ⚠️ Root cause of the reported bug: the table used to call
+  // getRecentLogs(50) — a flat, single-shot fetch capped at 50 rows, with
+  // no way to ask the backend for anything past that. With 300+ rows in
+  // notification_logs, "Tous (50)" was silently hiding every row beyond the
+  // 50 most recent ones; there was no page/size concept anywhere in this
+  // component, and the backend endpoint it called didn't return a total
+  // count either. Fixed by switching to GET /api/dashboard/logs/page
+  // (DashboardService#getRecentLogsPage), which returns totalElements/
+  // totalPages alongside each page's rows.
+  currentPage: number = 0;
+  pageSize: number = DEFAULT_PAGE_SIZE;
+  totalPages: number = 0;
+  totalElements: number = 0;
 
   activeFilter: string = 'ALL';
   selectedNotif: NotificationLogEntry | null = null;
@@ -59,6 +82,12 @@ export class NotificationsComponent implements OnInit, OnDestroy {
     }
   }
 
+  /** Filtering is applied client-side, on the current page's rows only —
+   *  it does not query the backend or search across other pages. That
+   *  matches how this filter always worked (it filtered whatever was in
+   *  allNotifications before pagination existed too); a filter that
+   *  searches the full 300+ row table across pages would need real
+   *  server-side filtering, which hasn't been asked for here. */
   get filteredNotifications(): NotificationLogEntry[] {
     if (this.activeFilter === 'ALL') return this.allNotifications;
     return this.allNotifications.filter(n => n.status.toUpperCase() === this.activeFilter);
@@ -70,6 +99,26 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   selectNotification(notif: NotificationLogEntry) {
     this.selectedNotif = notif;
+  }
+
+  /** Moves to the previous page and re-fetches it. No-op (rather than
+   *  going negative) when already on the first page — mirrors the
+   *  template's [disabled] guard so a stray call (e.g. a fast double-click
+   *  before Angular re-renders the disabled state) can't request page -1. */
+  goToPreviousPage() {
+    if (this.currentPage <= 0 || this.isLoading) return;
+    this.currentPage--;
+    this.fetchLogs();
+  }
+
+  /** Moves to the next page and re-fetches it. No-op once currentPage is
+   *  the last page (totalPages - 1) or there are no pages at all
+   *  (totalPages === 0, an empty table) — same reasoning as
+   *  goToPreviousPage above. */
+  goToNextPage() {
+    if (this.isLoading || this.currentPage + 1 >= this.totalPages) return;
+    this.currentPage++;
+    this.fetchLogs();
   }
 
   /**
@@ -84,41 +133,42 @@ export class NotificationsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * ⚠️ Still a client-side simulation, unchanged by this pass — flagging
-   * rather than silently leaving it misleading now that the table is real.
-   * There's no backend "resend" endpoint, and notification_logs never
-   * stored the original subject/body (see notification-log.model.ts), so a
-   * genuine resend isn't possible from this data alone — it would need a
-   * new backend endpoint (resend-by-id, replaying the original request)
-   * that hasn't been requested/built. Because the rest of this table is now
-   * real, the fake row this injects will visibly vanish on the very next
-   * 5s poll (it doesn't exist in notification_logs) — a real regression in
-   * how convincing the simulation looks, worth a follow-up if "Relancer"
-   * needs to actually work.
+   * Real backend call as of this fix — POST /api/dashboard/logs/{id}/resend
+   * (NotificationResendService), not a client-side simulation.
+   *
+   * ⚠️ Root cause of the reported bug ("le toast vert disparaît au refresh,
+   * la liste ne se met jamais à jour"): this used to setTimeout() and then
+   * splice a fabricated NotificationLogEntry straight into
+   * allNotifications, with no backend call at all. Nothing was ever
+   * persisted, so the injected row — and the toast referencing it — vanished
+   * on the very next 5s poll or manual refresh, which is exactly the
+   * symptom reported.
+   *
+   * Now: the backend republishes a real event onto Kafka, which the normal
+   * channel-consumer pipeline picks up and turns into a genuine new
+   * notification_logs row. That row doesn't exist the instant this HTTP
+   * call resolves (the consumer hasn't processed it yet), so this refetches
+   * twice — immediately, so the toast/UI settle right away without waiting
+   * for the 5s poll, and again after POST_SEND_REFRESH_DELAY_MS (same
+   * pattern as onNotificationSent) to actually pick up the new row once
+   * it's been written. Either way, the user never has to refresh manually.
    */
   resendNotification(notif: NotificationLogEntry | null) {
-    if (!notif) return;
+    if (!notif || this.isResending) return;
 
     this.isResending = true;
-    setTimeout(() => {
-      this.isResending = false;
-
-      const newId = 'NOTIF-' + Math.floor(1026 + Math.random() * 100);
-      const nowTime = new Date().toLocaleTimeString('fr-FR');
-
-      const replayed: NotificationLogEntry = {
-        id: newId,
-        recipient: notif.recipient,
-        channel: notif.channel,
-        status: 'Delivered',
-        time: nowTime,
-        payloadSnippet: `[REPLAY de ${notif.id}] ${notif.payloadSnippet || ''}`
-      };
-
-      this.allNotifications.unshift(replayed);
-      this.selectedNotif = replayed;
-      this.showToast(`🚀 Notification ${notif.id} relancée avec succès ! (Nouveau log: ${newId})`);
-    }, 800);
+    this.notificationService.resendNotification(notif.id).subscribe({
+      next: () => {
+        this.isResending = false;
+        this.showToast(`🚀 Notification ${notif.id} relancée avec succès !`);
+        this.fetchLogs();
+        this.onNotificationSent();
+      },
+      error: (err) => {
+        this.isResending = false;
+        this.showToast(err?.error?.message || `❌ Échec de la relance de la notification ${notif.id}.`);
+      }
+    });
   }
 
   refreshLogs() {
@@ -127,19 +177,22 @@ export class NotificationsComponent implements OnInit, OnDestroy {
 
   private fetchLogs(onDone?: () => void) {
     this.isLoading = true;
-    this.notificationService.getRecentLogs(50).subscribe({
-      next: (logs) => {
+    this.notificationService.getRecentLogsPage(this.currentPage, this.pageSize).subscribe({
+      next: (result) => {
         this.isLoading = false;
         this.loadError = null;
-        this.allNotifications = logs;
+        this.allNotifications = result.content;
+        this.totalElements = result.totalElements;
+        this.totalPages = result.totalPages;
 
         // Preserve the current selection across a refresh when it's still
-        // present; otherwise fall back to the newest entry so the detail
-        // panel never points at a row that's scrolled out of the list.
+        // present on this page; otherwise fall back to this page's newest
+        // entry so the detail panel never points at a row that scrolled
+        // off (either polled away, or onto a different page).
         const stillPresent = this.selectedNotif
-          ? logs.find(n => n.id === this.selectedNotif!.id)
+          ? result.content.find(n => n.id === this.selectedNotif!.id)
           : undefined;
-        this.selectedNotif = stillPresent ?? logs[0] ?? null;
+        this.selectedNotif = stillPresent ?? result.content[0] ?? null;
 
         onDone?.();
       },

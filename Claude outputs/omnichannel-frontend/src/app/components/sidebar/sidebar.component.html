@@ -1,0 +1,60 @@
+<aside class="sidebar bg-gray-900 text-white w-64 h-screen flex flex-col overflow-hidden">
+  <div class="flex items-center space-x-2 px-4 py-4 border-b border-gray-800 flex-shrink-0">
+    <span class="text-xl font-bold bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">Admin Console</span>
+  </div>
+
+  <!-- flex-1 + overflow-y-auto: this is what actually fixes the overlap.
+       Before, the nav and the profile block were two items in one
+       justify-between column with no independent scroll area, so on a
+       shorter viewport (or once more nav links get added) the column's
+       total content height exceeded the aside's height and the profile
+       block got compressed into the same space as the nav instead of
+       being pushed below the fold. Now the nav owns its own scrollbar and
+       can never encroach on the profile block below it. -->
+  <nav class="flex-1 overflow-y-auto space-y-1 px-3 py-4">
+    <a routerLink="/dashboard" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>📊 Dashboard</span>
+    </a>
+    <a routerLink="/templates" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>📄 Templates</span>
+    </a>
+    <a routerLink="/workflows" routerLinkActive="bg-orange-600 text-white" [routerLinkActiveOptions]="{ exact: true }" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>⚙️ Cinématiques / Workflows</span>
+    </a>
+    <a routerLink="/workflows/executions" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>🧭 Exécutions</span>
+    </a>
+    <a routerLink="/event-simulator" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>🧪 Simulateur d'événements</span>
+    </a>
+    <a routerLink="/notifications" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>🔔 Notifications</span>
+    </a>
+    <a routerLink="/statistics" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>📈 Statistiques</span>
+    </a>
+    <a routerLink="/monitoring" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
+      <span>🖥️ Monitoring</span>
+    </a>
+  </nav>
+
+  <!-- flex-shrink-0: this block always renders at its natural full height,
+       never compressed to fit leftover space — the nav above absorbs all
+       the squeeze via its own scrollbar instead. -->
+  <div class="flex-shrink-0 border-t border-gray-800 p-4">
+    <div class="flex flex-col gap-3">
+      <div class="min-w-0">
+        <p class="text-sm font-medium text-gray-200 truncate">{{ displayName }}</p>
+        <p class="text-xs text-gray-500 truncate">{{ displayEmail }}</p>
+      </div>
+
+      <button
+        (click)="logout()"
+        type="button"
+        class="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-rose-950 hover:text-rose-300 transition"
+      >
+        <span>🚪 Déconnexion</span>
+      </button>
+    </div>
+  </div>
+</aside>

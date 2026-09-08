@@ -53,4 +53,41 @@ class RateLimiterServiceTest {
 
     assertFalse(allowed);
   }
+
+  @Test
+  void shouldNotSetExpiryOnAnyRequestAfterTheFirstOfTheWindow() {
+    when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+    when(valueOperations.increment("ratelimit:client-123")).thenReturn(2L);
+
+    rateLimiterService.isAllowed("client-123", 10);
+
+    verify(redisTemplate, never()).expire(any(), any());
+  }
+
+  @Test
+  void shouldRejectABlankClientIdWithoutTouchingRedisAtAll() {
+    boolean allowed = rateLimiterService.isAllowed("   ", 10);
+
+    assertFalse(allowed);
+    verifyNoInteractions(redisTemplate);
+  }
+
+  @Test
+  void shouldRejectANullClientIdWithoutTouchingRedisAtAll() {
+    boolean allowed = rateLimiterService.isAllowed(null, 10);
+
+    assertFalse(allowed);
+    verifyNoInteractions(redisTemplate);
+  }
+
+  @Test
+  void shouldFallBackToAllowedWhenRedisItselfFails() {
+    // Resilience fallback per RateLimiterServiceImpl's own comment: a down
+    // Redis must never itself block real notification traffic.
+    when(redisTemplate.opsForValue()).thenThrow(new RuntimeException("Redis connection refused"));
+
+    boolean allowed = rateLimiterService.isAllowed("client-123", 10);
+
+    assertTrue(allowed);
+  }
 }

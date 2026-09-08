@@ -32,6 +32,14 @@ public class KafkaSimulatorProducer {
     private final Random random = new Random();
 
     private static final List<String> CHANNELS = List.of("EMAIL", "SMS", "PUSH", "WHATSAPP");
+
+    /** Subset of CHANNELS that determineChannelTopic actually knows how to
+     *  route to a real, consumed Kafka topic (see its switch below) — used
+     *  as the fallback pool when a channel is missing, so a "recovered"
+     *  event still lands somewhere a channel consumer is listening, rather
+     *  than silently falling into determineChannelTopic's default branch
+     *  ("notification." + base) the way a random WHATSAPP pick would. */
+    private static final List<String> ACTIVE_CHANNELS = List.of("EMAIL", "SMS", "PUSH");
     private static final List<String> PRIORITIES = List.of("HIGH", "LOW");
     private static final List<String> TEMPLATES = List.of(
             "TMPL-ORDER-CONFIRM",
@@ -63,8 +71,8 @@ public class KafkaSimulatorProducer {
      * Sends a single simulated notification event.
      */
     public NotificationEvent sendSingleSimulatedEvent(NotificationEvent customEvent) {
-        NotificationEvent event = (customEvent != null) ? customEvent : generateRandomEvent();
-        
+        NotificationEvent event = (customEvent != null) ? withDefaultChannelIfMissing(customEvent) : generateRandomEvent();
+
         try {
             // 1. Publish to main ingestion topic (notification.ingestion)
             log.info("🚀 [Simulator] Publishing simulated event {} to {}", event.getEventId(), KafkaTopicConfig.TOPIC_INGESTION);
@@ -189,8 +197,29 @@ public class KafkaSimulatorProducer {
                 .build();
     }
 
+    /**
+     * ⚠️ Root cause of the reported NullPointerException ("Cannot invoke
+     * String.toLowerCase() because channel is null"): SimulatorService's
+     * sendSingleEvent() on the frontend POSTs `customEvent || {}` to
+     * /api/v1/simulator/send when the user clicks "Envoyer 1 Événement"
+     * with no custom payload — i.e. an empty JSON object, not an absent
+     * body. Spring's @RequestBody(required = false) only yields a null
+     * customEvent when there is genuinely no request body at all; `{}` is a
+     * perfectly valid body that deserializes into a real NotificationEvent
+     * with every field null. So sendSingleSimulatedEvent's
+     * `customEvent != null` check was true, it used that all-null event
+     * as-is instead of generating a random one, and this method crashed the
+     * instant it tried event.getChannel().toLowerCase().
+     *
+     * Fixed at the source in withDefaultChannelIfMissing(), called from
+     * sendSingleSimulatedEvent before an event is ever routed here — so by
+     * the time channel reaches this method it should never be null. The
+     * null-safe default below is a second, defense-in-depth layer only:
+     * it keeps this method safe on its own even if some future caller
+     * invokes it directly without going through that normalization.
+     */
     private String determineChannelTopic(String channel, String priority) {
-        String base = channel.toLowerCase();
+        String base = (channel != null && !channel.isBlank() ? channel : "EMAIL").toLowerCase();
         boolean isHigh = "HIGH".equalsIgnoreCase(priority);
         return switch (base) {
             case "email" -> isHigh ? KafkaTopicConfig.TOPIC_EMAIL_HIGH : KafkaTopicConfig.TOPIC_EMAIL_LOW;
@@ -198,6 +227,26 @@ public class KafkaSimulatorProducer {
             case "push" -> isHigh ? KafkaTopicConfig.TOPIC_PUSH_HIGH : KafkaTopicConfig.TOPIC_PUSH_LOW;
             default -> "notification." + base;
         };
+    }
+
+    /**
+     * Fills in a valid channel — chosen at random from ACTIVE_CHANNELS —
+     * on any custom/partial event that arrives with none, instead of
+     * letting it crash determineChannelTopic(). Leaves every other field on
+     * the event untouched, including a channel that's already set (even an
+     * unusual one like a caller-supplied "WHATSAPP"): this only patches the
+     * specific gap that caused the NPE, it doesn't otherwise validate or
+     * rewrite the caller's payload.
+     */
+    private NotificationEvent withDefaultChannelIfMissing(NotificationEvent event) {
+        if (event.getChannel() != null && !event.getChannel().isBlank()) {
+            return event;
+        }
+        String fallbackChannel = ACTIVE_CHANNELS.get(random.nextInt(ACTIVE_CHANNELS.size()));
+        log.warn("⚠️ [Simulator] Received a simulated event with no channel (eventId={}) — defaulting to a random active channel [{}]",
+                event.getEventId(), fallbackChannel);
+        event.setChannel(fallbackChannel);
+        return event;
     }
 
     @PreDestroy

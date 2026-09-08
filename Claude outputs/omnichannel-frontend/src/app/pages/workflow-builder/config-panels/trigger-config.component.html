@@ -1,0 +1,16 @@
+<div class="space-y-4">
+  <p class="text-xs text-gray-500">
+    Ce workflow démarre automatiquement quand un événement métier de ce type arrive sur
+    <span class="font-mono text-gray-400">notification.events</span> — jamais lancé manuellement.
+  </p>
+
+  <div>
+    <label class="text-xs font-semibold text-gray-400 uppercase">Type d'événement</label>
+    <input
+      type="text"
+      [(ngModel)]="eventType"
+      placeholder="ex. CART_ABANDONED"
+      class="mt-1 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono focus:outline-none focus:border-orange-600" />
+    <p class="text-xs text-gray-600 mt-1">Doit correspondre au champ "eventType" publié par le Simulateur d'événements.</p>
+  </div>
+</div>

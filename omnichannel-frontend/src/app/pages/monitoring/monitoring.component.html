@@ -47,8 +47,8 @@
     </div>
     <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
       <p class="text-xs font-semibold text-gray-400 uppercase">Dead Letter Queue (DLQ)</p>
-      <p class="text-amber-400 font-medium text-sm mt-2">{{ dlqCount }}</p>
-      <p class="text-[10px] text-gray-600 mt-1">Simulation locale (non connectée au backend)</p>
+      <p class="font-medium text-sm mt-2" [ngClass]="dlqMessages.length > 0 ? 'text-amber-400' : 'text-emerald-400'">{{ dlqCount }}</p>
+      <p class="text-[10px] text-gray-600 mt-1">Table dlq_messages (topic Kafka notification-dlq)</p>
     </div>
   </div>
 
@@ -143,10 +143,27 @@
 
     <div class="p-6 space-y-4">
       <p class="text-sm text-gray-400">
-        Le topic <code class="text-amber-400">notification-dlq</code> stocke les messages ayant échoué après toutes les tentatives de retry automatisées.
+        Le topic <code class="text-amber-400">notification-dlq</code> stocke les messages ayant échoué après toutes les tentatives de retry automatisées. Cette fenêtre se rafraîchit automatiquement toutes les 5 secondes tant qu'elle est ouverte.
       </p>
 
-      <div *ngIf="dlqMessages.length === 0" class="text-center py-8 text-emerald-400 bg-gray-950 rounded-xl border border-gray-800">
+      <div *ngIf="dlqLoadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3">
+        ⚠️ {{ dlqLoadError }}
+      </div>
+
+      <!-- isDlqLoading only ever drives this on the very first fetch (the
+           background 5s poll doesn't toggle it back on — see loadDlqMessages
+           callers), so this spinner state and the table below never fight
+           each other during a routine auto-refresh. -->
+      <div *ngIf="isDlqLoading && dlqMessages.length === 0 && !dlqLoadError" class="text-center py-8 text-gray-400 bg-gray-950 rounded-xl border border-gray-800">
+        ⏳ Chargement des messages DLQ…
+      </div>
+
+      <!-- Requires !dlqLoadError too: an HTTP failure must never render the
+           same reassuring "vide" banner as a genuinely empty queue — that
+           conflation was the real cause behind "l'inspecteur indique
+           souvent qu'il est vide" (a transient error looked identical to
+           an empty DLQ). -->
+      <div *ngIf="!isDlqLoading && !dlqLoadError && dlqMessages.length === 0" class="text-center py-8 text-emerald-400 bg-gray-950 rounded-xl border border-gray-800">
         🎉 La Dead Letter Queue est actuellement vide !
       </div>
 
@@ -168,7 +185,9 @@
               <td class="p-3"><span class="bg-gray-800 px-2 py-0.5 rounded text-gray-300">{{ msg.channel }}</span></td>
               <td class="p-3 text-rose-400">{{ msg.errorReason }}</td>
               <td class="p-3 text-right">
-                <button (click)="deleteDlqMessage(msg.id)" class="text-rose-400 hover:text-rose-300 text-xs underline">Supprimer</button>
+                <button (click)="deleteDlqMessage(msg.id)" [disabled]="deletingIds.has(msg.id)" class="text-rose-400 hover:text-rose-300 text-xs underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed">
+                  {{ deletingIds.has(msg.id) ? 'Suppression…' : 'Supprimer' }}
+                </button>
               </td>
             </tr>
           </tbody>
@@ -182,8 +201,8 @@
         <button (click)="closeDlqModal()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
           Fermer
         </button>
-        <button *ngIf="dlqMessages.length > 0" (click)="replayDlqMessages()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
-          🔄 Rejouer Tous les Messages
+        <button *ngIf="dlqMessages.length > 0" (click)="replayDlqMessages()" [disabled]="isReplaying" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition disabled:opacity-50">
+          {{ isReplaying ? '⏳ Réinjection en cours…' : '🔄 Rejouer Tous les Messages' }}
         </button>
       </div>
     </div>

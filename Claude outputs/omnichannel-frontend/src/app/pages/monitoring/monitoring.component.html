@@ -1,0 +1,191 @@
+<div class="space-y-6">
+  <!-- Toast Notification Alert -->
+  <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-emerald-100 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all animate-bounce">
+    <span>{{ toastMessage }}</span>
+    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white font-bold ml-2">✕</button>
+  </div>
+
+  <!-- Header -->
+  <div class="flex justify-between items-center border-b border-gray-800 pb-4">
+    <div>
+      <h1 class="text-2xl font-bold text-white">Monitoring Système & Simulateur Kafka</h1>
+      <p class="text-sm text-gray-400">État de santé de la plateforme, gestion des files et simulateur de trafic client.</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <button (click)="refreshHealth()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1">
+        <span>🔄 Rafraîchir</span>
+      </button>
+      <span *ngIf="!health" class="bg-gray-800 text-gray-400 border border-gray-700 text-xs px-3 py-1 rounded-full font-medium">
+        ○ Vérification en cours…
+      </span>
+      <span *ngIf="health" [ngClass]="health.healthy ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium">
+        {{ health.healthy ? '● Infrastructure Stable' : '● Infrastructure Dégradée' }}
+      </span>
+    </div>
+  </div>
+
+  <div *ngIf="healthLoadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3">
+    ⚠️ {{ healthLoadError }}
+  </div>
+
+  <!-- Status Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
+      <p class="text-xs font-semibold text-gray-400 uppercase">Kafka Broker</p>
+      <p *ngIf="health" [ngClass]="health.kafka.up ? 'text-emerald-400' : 'text-rose-400'" class="font-medium text-sm mt-2">{{ health.kafka.message }}</p>
+      <p *ngIf="!health" class="text-gray-500 font-medium text-sm mt-2">Vérification…</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
+      <p class="text-xs font-semibold text-gray-400 uppercase">Redis Cache</p>
+      <p *ngIf="health" [ngClass]="health.redis.up ? 'text-emerald-400' : 'text-rose-400'" class="font-medium text-sm mt-2">{{ health.redis.message }}</p>
+      <p *ngIf="!health" class="text-gray-500 font-medium text-sm mt-2">Vérification…</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
+      <p class="text-xs font-semibold text-gray-400 uppercase">PostgreSQL Database</p>
+      <p *ngIf="health" [ngClass]="health.database.up ? 'text-emerald-400' : 'text-rose-400'" class="font-medium text-sm mt-2">{{ health.database.message }}</p>
+      <p *ngIf="!health" class="text-gray-500 font-medium text-sm mt-2">Vérification…</p>
+    </div>
+    <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
+      <p class="text-xs font-semibold text-gray-400 uppercase">Dead Letter Queue (DLQ)</p>
+      <p class="text-amber-400 font-medium text-sm mt-2">{{ dlqCount }}</p>
+      <p class="text-[10px] text-gray-600 mt-1">Simulation locale (non connectée au backend)</p>
+    </div>
+  </div>
+
+  <!-- Kafka Simulator Producer Control Panel Card -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow">
+    <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
+      <div class="flex items-center space-x-3">
+        <span class="text-xl">⚡</span>
+        <div>
+          <h3 class="text-base font-semibold text-white">Simulateur de Producteur Kafka (Backend Service)</h3>
+          <p class="text-xs text-gray-400">Générez du trafic et des événements de notifications simulés vers le topic <code class="text-orange-400">notification.ingestion</code>.</p>
+        </div>
+      </div>
+      <span [ngClass]="simulatorStatus.active ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium">
+        {{ simulatorStatus.active ? '● Continuous Producer RUNNING' : '○ Producer STOPPED' }}
+      </span>
+    </div>
+
+    <!-- Alert for simulator actions -->
+    <div *ngIf="simActionAlert" class="bg-gray-950 border border-orange-500/50 text-orange-300 text-xs p-3 rounded-lg mb-4 flex justify-between items-center">
+      <span>{{ simActionAlert }}</span>
+      <button (click)="simActionAlert = null" class="text-gray-400 hover:text-white font-bold ml-2">✕</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+      <!-- Controls -->
+      <div class="space-y-3 md:col-span-2">
+        <div class="flex items-center space-x-4">
+          <button (click)="toggleSimulation()" [disabled]="isSimLoading" [ngClass]="simulatorStatus.active ? 'bg-rose-600 hover:bg-rose-500' : 'bg-emerald-600 hover:bg-emerald-500'" class="text-white text-xs px-5 py-2.5 rounded-lg font-medium transition shadow flex items-center space-x-2">
+            <span>{{ simulatorStatus.active ? '⏹️ Arrêter la Simulation' : '▶️ Démarrer Simulation Continue' }}</span>
+          </button>
+
+          <button (click)="sendSingleSimulatedEvent()" [disabled]="isSimLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition border border-gray-700">
+            ⚡ Envoyer 1 Evénement
+          </button>
+
+          <button (click)="sendBatchSimulatedEvents(10)" [disabled]="isSimLoading" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition shadow">
+            🚀 Injecter Lot (10 Events)
+          </button>
+        </div>
+
+        <div class="flex items-center space-x-3 text-xs text-gray-400 pt-2">
+          <label for="simRateInput" class="font-medium">Cadence d'envoi (Events / seconde) :</label>
+          <input id="simRateInput" type="number" min="1" max="20" [(ngModel)]="simRate" class="bg-gray-950 border border-gray-700 text-white text-xs rounded px-3 py-1 w-16 text-center focus:outline-none focus:border-orange-500" />
+          <span class="text-gray-500">(1 à 20 msg/s)</span>
+        </div>
+      </div>
+
+      <!-- Simulator Metrics Summary -->
+      <div class="bg-gray-950 border border-gray-800 p-4 rounded-lg space-y-2 text-xs">
+        <div class="flex justify-between">
+          <span class="text-gray-400">Topic Cible Kafka:</span>
+          <span class="font-mono text-orange-400">notification.ingestion</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Total Envois Simulés:</span>
+          <span class="font-bold text-white">{{ simulatorStatus.totalSent }}</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-gray-400">Total Erreurs:</span>
+          <span class="text-emerald-400">{{ simulatorStatus.totalErrors }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- System Logs / Maintenance Actions -->
+  <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow">
+    <h3 class="text-base font-semibold text-white mb-2">Actions de Maintenance</h3>
+    <p class="text-sm text-gray-400 mb-4">Gérez les files d'attente en erreur ou relancez manuellement les services de synchronisation.</p>
+    <div class="flex space-x-3">
+      <button (click)="purgeRedisCache()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg transition font-medium border border-gray-700 flex items-center space-x-2">
+        <span>🧹 Purger le Cache Redis</span>
+      </button>
+      <button (click)="openDlqModal()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg transition font-medium border border-gray-700 flex items-center space-x-2">
+        <span>🔍 Inspecter la DLQ Kafka</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DLQ Inspection Modal -->
+<div *ngIf="isDlqModalOpen" class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4">
+  <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in">
+    <div class="flex justify-between items-center border-b border-gray-800 p-5 bg-gray-950">
+      <div class="flex items-center space-x-2">
+        <span class="text-amber-400 text-lg">⚠️</span>
+        <h3 class="text-lg font-bold text-white">Inspecteur Kafka Dead Letter Queue (DLQ)</h3>
+      </div>
+      <button (click)="closeDlqModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
+    </div>
+
+    <div class="p-6 space-y-4">
+      <p class="text-sm text-gray-400">
+        Le topic <code class="text-amber-400">notification-dlq</code> stocke les messages ayant échoué après toutes les tentatives de retry automatisées.
+      </p>
+
+      <div *ngIf="dlqMessages.length === 0" class="text-center py-8 text-emerald-400 bg-gray-950 rounded-xl border border-gray-800">
+        🎉 La Dead Letter Queue est actuellement vide !
+      </div>
+
+      <div *ngIf="dlqMessages.length > 0" class="overflow-x-auto bg-gray-950 rounded-xl border border-gray-800">
+        <table class="w-full text-left text-xs text-gray-300">
+          <thead class="bg-gray-900 text-gray-400 uppercase border-b border-gray-800">
+            <tr>
+              <th class="p-3">ID Message</th>
+              <th class="p-3">Destinataire</th>
+              <th class="p-3">Canal</th>
+              <th class="p-3">Raison Échec</th>
+              <th class="p-3 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            <tr *ngFor="let msg of dlqMessages">
+              <td class="p-3 font-mono text-orange-400">{{ msg.id }}</td>
+              <td class="p-3">{{ msg.recipient }}</td>
+              <td class="p-3"><span class="bg-gray-800 px-2 py-0.5 rounded text-gray-300">{{ msg.channel }}</span></td>
+              <td class="p-3 text-rose-400">{{ msg.errorReason }}</td>
+              <td class="p-3 text-right">
+                <button (click)="deleteDlqMessage(msg.id)" class="text-rose-400 hover:text-rose-300 text-xs underline">Supprimer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="flex justify-between items-center border-t border-gray-800 p-5 bg-gray-950">
+      <span class="text-xs text-gray-500">{{ dlqMessages.length }} message(s) en attente</span>
+      <div class="space-x-3">
+        <button (click)="closeDlqModal()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
+          Fermer
+        </button>
+        <button *ngIf="dlqMessages.length > 0" (click)="replayDlqMessages()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
+          🔄 Rejouer Tous les Messages
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

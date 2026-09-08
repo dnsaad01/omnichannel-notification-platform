@@ -1,0 +1,38 @@
+<div class="space-y-4">
+  <div>
+    <label class="text-xs font-semibold text-gray-400 uppercase">Template</label>
+    <select
+      [ngModel]="templateId"
+      (ngModelChange)="templateId = $event"
+      class="mt-1 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-orange-600">
+      <option [ngValue]="null">— Choisir un template —</option>
+      <option *ngFor="let t of templates" [ngValue]="t.id">{{ t.name }} ({{ t.channel }})</option>
+    </select>
+    <p *ngIf="templates.length === 0" class="text-xs text-amber-500 mt-1">Aucun template trouvé — créez-en un dans la page Templates.</p>
+  </div>
+
+  <div>
+    <label class="text-xs font-semibold text-gray-400 uppercase">Canal (optionnel)</label>
+    <select
+      [(ngModel)]="channel"
+      class="mt-1 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 focus:outline-none focus:border-orange-600">
+      <option value="">— Utiliser le canal du template ({{ selectedTemplate?.channel || '—' }}) —</option>
+      <option value="EMAIL">EMAIL</option>
+      <option value="SMS">SMS</option>
+      <option value="PUSH">PUSH</option>
+    </select>
+  </div>
+
+  <div>
+    <label class="text-xs font-semibold text-gray-400 uppercase">Chemin du destinataire (optionnel)</label>
+    <input
+      type="text"
+      [(ngModel)]="recipientPath"
+      placeholder="ex. user.email"
+      class="mt-1 w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-2 text-sm text-gray-200 font-mono focus:outline-none focus:border-orange-600" />
+    <p class="text-xs text-gray-600 mt-1">
+      Chemin dans le contexte de l'exécution. Laissez vide pour utiliser <span class="font-mono">recipientId</span>,
+      <span class="font-mono">userId</span>, <span class="font-mono">email</span> ou <span class="font-mono">phone</span> automatiquement.
+    </p>
+  </div>
+</div>

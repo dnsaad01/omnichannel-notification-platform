@@ -3,21 +3,24 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SimulatorService, SimulatorStatus } from '../../services/simulator.service';
 import { MonitoringService } from '../../services/monitoring.service';
-import { InfrastructureHealthResponse } from '../../models/monitoring.model';
-
-interface DlqMessage {
-  id: string;
-  recipient: string;
-  channel: string;
-  errorReason: string;
-  timestamp: string;
-}
+import { DlqMessage, InfrastructureHealthResponse } from '../../models/monitoring.model';
 
 /** Same 5s cadence the Notifications/Execution Detail pages already poll
  *  at — real-time outage detection is the whole point of this page, so a
  *  stopped container shows up here within one cycle, not just on manual
  *  "Rafraîchir". */
 const POLL_INTERVAL_MS = 5000;
+
+/** How often the DLQ modal re-fetches while it's open. A DLQ arrival is not
+ *  instantaneous — a failing event only lands on notification-dlq after the
+ *  channel consumer's retries are exhausted (KafkaConsumerConfig's
+ *  ExponentialBackOff: up to ~10s), plus however long DlqMessageConsumer
+ *  takes to persist it. Without this poll, a user who opened the modal
+ *  right after triggering a failure would see an empty list and have no
+ *  reason to believe anything was wrong — indistinguishable from "the DLQ
+ *  really is empty" — which is the "ça indique souvent qu'il est vide"
+ *  complaint this fixes: it wasn't lying, it was just a static snapshot. */
+const DLQ_POLL_INTERVAL_MS = 5000;
 
 @Component({
   selector: 'app-monitoring',
@@ -45,15 +48,6 @@ export class MonitoringComponent implements OnInit, OnDestroy {
   healthLoadError: string | null = null;
   private pollHandle: ReturnType<typeof setInterval> | null = null;
 
-  /** ⚠️ Still mocked, unchanged by this pass — out of scope for the
-   *  infrastructure-outage-detection fix this session, but flagging rather
-   *  than leaving it silently misleading now that the three cards above it
-   *  are real: there's no backend endpoint listing real DLQ messages (the
-   *  `notification-dlq` Kafka topic is real — see KafkaConsumerConfig/
-   *  KafkaTopicConfig — but nothing consumes/lists it over REST), so
-   *  dlqMessages below and this count are both still fabricated. */
-  dlqCount = '3 messages';
-
   // Simulator controls state
   simulatorStatus: SimulatorStatus = {
     active: false,
@@ -69,17 +63,32 @@ export class MonitoringComponent implements OnInit, OnDestroy {
   simActionAlert: string | null = null;
   toastMessage: string | null = null;
 
-  // DLQ Modal State
+  // --- DLQ Modal State ---
+  // Real data from GET /api/monitoring/dlq (dlq_messages table, populated by
+  // DlqMessageConsumer off the notification-dlq Kafka topic). This used to
+  // be a hardcoded array initialized right here on the component — which is
+  // exactly why "deleted" messages kept reappearing: every page refresh or
+  // modal reopen created a brand new MonitoringComponent instance, and this
+  // field was re-initialized to the same 3 fake rows every single time.
+  // Nothing was ever persisted anywhere, front or back.
   isDlqModalOpen: boolean = false;
-  dlqMessages: DlqMessage[] = [
-    { id: 'DLQ-901', recipient: 'invalid_email_format.com', channel: 'EMAIL', errorReason: 'SMTP 550 Invalid Recipient', timestamp: '10:14:22' },
-    { id: 'DLQ-902', recipient: '+212000000000', channel: 'SMS', errorReason: 'Twilio Unreachable Carrier', timestamp: '11:05:01' },
-    { id: 'DLQ-903', recipient: 'push_token_expired_x88', channel: 'PUSH', errorReason: 'FCM Token Registration Expired', timestamp: '12:30:15' }
-  ];
+  dlqMessages: DlqMessage[] = [];
+  dlqCount: string = '… messages';
+  isDlqLoading: boolean = false;
+  dlqLoadError: string | null = null;
+  isReplaying: boolean = false;
+  /** ids currently mid-DELETE — lets the template disable just that row's
+   *  button instead of the whole table, and stops a double-click from firing
+   *  a second DELETE for an id the first request is already removing (the
+   *  second would just 404, surfacing a confusing "not found" toast for an
+   *  action that actually succeeded). */
+  deletingIds = new Set<string>();
+  private dlqPollHandle: ReturnType<typeof setInterval> | null = null;
 
   ngOnInit() {
     this.refreshSimulatorStatus();
     this.fetchHealth();
+    this.loadDlqMessages();
     this.pollHandle = setInterval(() => this.fetchHealth(), POLL_INTERVAL_MS);
   }
 
@@ -88,6 +97,7 @@ export class MonitoringComponent implements OnInit, OnDestroy {
       clearInterval(this.pollHandle);
       this.pollHandle = null;
     }
+    this.stopDlqPolling();
   }
 
   fetchHealth() {
@@ -114,6 +124,7 @@ export class MonitoringComponent implements OnInit, OnDestroy {
     this.showToast('📊 Métriques système rafraîchies à jour !');
     this.fetchHealth();
     this.refreshSimulatorStatus();
+    this.loadDlqMessages();
   }
 
   // --- Redis Cache Action ---
@@ -129,26 +140,95 @@ export class MonitoringComponent implements OnInit, OnDestroy {
   // --- DLQ Inspection Modal Actions ---
   openDlqModal() {
     this.isDlqModalOpen = true;
+    this.loadDlqMessages();
+    this.startDlqPolling();
   }
 
   closeDlqModal() {
     this.isDlqModalOpen = false;
+    this.stopDlqPolling();
+  }
+
+  private startDlqPolling() {
+    this.stopDlqPolling(); // guard against a double-open leaking a second interval
+    this.dlqPollHandle = setInterval(() => this.loadDlqMessages(), DLQ_POLL_INTERVAL_MS);
+  }
+
+  private stopDlqPolling() {
+    if (this.dlqPollHandle) {
+      clearInterval(this.dlqPollHandle);
+      this.dlqPollHandle = null;
+    }
+  }
+
+  /** GET /api/monitoring/dlq — the single source of truth for both the
+   *  modal's table and the small DLQ count badge on the main page. Called
+   *  on init, while the modal is open (see DLQ_POLL_INTERVAL_MS), on
+   *  refreshHealth(), and after every delete/replay so the list and the
+   *  count never drift from what's actually in Postgres. */
+  loadDlqMessages() {
+    this.isDlqLoading = true;
+    this.monitoringService.getDlqMessages().subscribe({
+      next: (messages) => {
+        this.isDlqLoading = false;
+        this.dlqLoadError = null;
+        this.dlqMessages = messages;
+        this.dlqCount = `${messages.length} messages`;
+      },
+      error: (err) => {
+        this.isDlqLoading = false;
+        this.dlqLoadError = err?.error?.message || 'Impossible de charger les messages de la DLQ.';
+        // dlqMessages/dlqCount are deliberately left untouched here — an
+        // HTTP failure must never be presented as "0 messages / DLQ vide"
+        // (see the template's empty-state guard, which now also checks
+        // !dlqLoadError): that was the actual bug behind "l'inspecteur
+        // indique souvent qu'il est vide" — a transient fetch error used to
+        // render the exact same reassuring "🎉 vide" banner as a real
+        // empty queue, silently masking the error underneath it.
+      }
+    });
   }
 
   replayDlqMessages() {
-    const replayedCount = this.dlqMessages.length;
-    this.dlqMessages = [];
-    this.dlqCount = '0 messages';
-    this.showToast(`🚀 ${replayedCount} messages DLQ réinjectés dans Kafka (notification-retry) !`);
-    setTimeout(() => {
-      this.isDlqModalOpen = false;
-    }, 1200);
+    this.isReplaying = true;
+    this.monitoringService.replayDlqMessages().subscribe({
+      next: (res) => {
+        this.isReplaying = false;
+        this.showToast(`🚀 ${res.replayedCount} messages DLQ réinjectés dans Kafka !`);
+        this.loadDlqMessages();
+        setTimeout(() => {
+          this.isDlqModalOpen = false;
+          this.stopDlqPolling();
+        }, 1200);
+      },
+      error: (err) => {
+        this.isReplaying = false;
+        this.showToast(err?.error?.message || '❌ Échec de la réinjection des messages DLQ.');
+      }
+    });
   }
 
   deleteDlqMessage(id: string) {
-    this.dlqMessages = this.dlqMessages.filter(m => m.id !== id);
-    this.dlqCount = `${this.dlqMessages.length} messages`;
-    this.showToast(`🗑️ Message DLQ ${id} supprimé.`);
+    if (this.deletingIds.has(id)) {
+      return; // already in flight for this row — ignore a double click
+    }
+    this.deletingIds.add(id);
+
+    this.monitoringService.deleteDlqMessage(id).subscribe({
+      next: () => {
+        this.deletingIds.delete(id);
+        // Re-fetch instead of just filtering dlqMessages locally: the
+        // backend is now the source of truth, and re-fetching is what
+        // proves the delete actually persisted rather than just looking
+        // like it did in local state.
+        this.showToast(`🗑️ Message DLQ ${id} supprimé.`);
+        this.loadDlqMessages();
+      },
+      error: (err) => {
+        this.deletingIds.delete(id);
+        this.showToast(err?.error?.message || `❌ Échec de la suppression du message ${id}.`);
+      }
+    });
   }
 
   // --- Kafka Simulator Controls ---

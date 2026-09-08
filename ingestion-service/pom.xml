@@ -17,6 +17,37 @@
     <properties>
         <java.version>17</java.version>
         <lombok.version>1.18.36</lombok.version>
+        <jacoco.version>0.8.12</jacoco.version>
+        <sonar-maven-plugin.version>3.11.0.3922</sonar-maven-plugin.version>
+
+        <!-- SonarQube project identity. sonar.projectKey/projectName are
+             placeholders — replace with whatever key you register in your
+             SonarQube instance. sonar.host.url defaults to a local
+             SonarQube (docker run -p 9000:9000 sonarqube:community, per
+             the setup steps) — override with -Dsonar.host.url=... on the
+             command line if yours runs elsewhere. sonar.token is
+             deliberately NOT set here (never commit a token) — pass it as
+             -Dsonar.token=... or via the SONAR_TOKEN env var at scan time,
+             same pattern already used for MAIL_PASSWORD in
+             application.properties. -->
+        <sonar.projectKey>omnichannel-backend</sonar.projectKey>
+        <sonar.projectName>Omnichannel Backend (ingestion-service)</sonar.projectName>
+        <sonar.host.url>http://localhost:9000</sonar.host.url>
+        <sonar.java.source>${java.version}</sonar.java.source>
+
+        <!-- Points Sonar at JaCoCo's XML report (not the HTML one) so it
+             can compute real line/branch coverage per file instead of
+             showing "no coverage information". -->
+        <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
+
+        <!-- Excluded from Sonar's own coverage expectations — generated
+             Lombok boilerplate on @Data/@Builder DTOs and the bootstrap
+             class add nothing meaningful to test, and would otherwise drag
+             the project-wide coverage percentage down for no real reason. -->
+        <sonar.coverage.exclusions>
+            **/dto/**,
+            **/*Application.java
+        </sonar.coverage.exclusions>
     </properties>
 
     <dependencies>
@@ -92,6 +123,18 @@
             <artifactId>spring-kafka-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- Needed for SecurityMockMvcRequestPostProcessors.jwt() in the
+             @WebMvcTest controller tests below — spring-boot-starter-test
+             does NOT pull this in automatically just because
+             spring-boot-starter-security is a main dependency. Without it,
+             every @WebMvcTest that @Imports the real SecurityConfig (now
+             that /api/dashboard/**, /api/templates/**, etc. require a JWT)
+             would get 401s it has no way to work around. -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-security</artifactId>
@@ -154,6 +197,48 @@
                         </exclude>
                     </excludes>
                 </configuration>
+            </plugin>
+
+            <!-- Instruments `mvn test` so every unit test run also produces
+                 coverage data. prepare-agent attaches the JaCoCo Java agent
+                 before Surefire runs the tests; report (bound to the test
+                 phase, right after Surefire) then converts that data into
+                 target/site/jacoco/jacoco.xml — the exact path
+                 sonar.coverage.jacoco.xmlReportPaths points at above. Skip
+                 either goal and `mvn sonar:sonar` will run but report 0%
+                 coverage on every file, not fail outright — worth knowing
+                 when a scan "succeeds" with suspiciously empty numbers. -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Declaring this here is what turns `mvn sonar:sonar` into a
+                 valid goal for this module without having to spell out the
+                 fully-qualified plugin coordinates on every invocation. It
+                 does nothing on a plain `mvn test`/`mvn package` — it only
+                 runs when the sonar:sonar goal is explicitly requested (see
+                 the terminal commands below). -->
+            <plugin>
+                <groupId>org.sonarsource.scanner.maven</groupId>
+                <artifactId>sonar-maven-plugin</artifactId>
+                <version>${sonar-maven-plugin.version}</version>
             </plugin>
         </plugins>
     </build>

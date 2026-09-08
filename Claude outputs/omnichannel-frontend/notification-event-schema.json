@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NotificationEvent",
+  "type": "object",
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "description": "Unique identifier for the notification event"
+    },
+    "userId": {
+      "type": "string",
+      "description": "ID of the target end user"
+    },
+    "channel": {
+      "type": "string",
+      "description": "Notification channel (e.g. EMAIL, PUSH, SMS)"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Subject title for the notification"
+    },
+    "body": {
+      "type": "string",
+      "description": "Main message content of the notification"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "ISO-8601 formatted timestamp of when the event occurred"
+    }
+  },
+  "required": [
+    "eventId",
+    "userId",
+    "channel",
+    "body"
+  ]
+}
