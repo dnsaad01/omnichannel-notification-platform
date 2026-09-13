@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 
 /**
- * Executes a WAIT node — the one suspend point in the engine (plan §5).
+ * Executes a WAIT node — the one suspend point in the engine.
  * Computes nextWakeAt and returns SUSPEND; WorkflowWaitScheduler is what
  * later notices nextWakeAt has passed and re-publishes onto the advance
  * topic, at which point the engine re-enters at this same node and resumes

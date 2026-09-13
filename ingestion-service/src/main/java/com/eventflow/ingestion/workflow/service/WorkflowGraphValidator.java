@@ -14,7 +14,7 @@ import java.util.Set;
 
 /**
  * Structural validation run by WorkflowService#activate before a workflow is
- * allowed to go ACTIVE (architecture plan §6):
+ * allowed to go ACTIVE:
  * - exactly one TRIGGER node
  * - every node reachable from the trigger
  * - every GATEWAY has exactly one "yes" and one "no" outgoing edge

@@ -9,10 +9,10 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 /**
- * ⚠️ BEHAVIOR CHANGE (Phase 4) — READ BEFORE TOUCHING
+ * ⚠️ BEHAVIOR CHANGE — READ BEFORE TOUCHING
  *
  * Previously this sent plain text only (SimpleMailMessage + setText(body)).
- * The Phase 4 email-open tracking pixel (see TrackingController and
+ * The email-open tracking pixel (see TrackingController and
  * NotificationNodeHandler#appendTrackingPixel) embeds an <img> tag into the
  * body of EMAIL-channel workflow notifications — that tag is inert (shows
  * as literal visible text) in a plain-text email, so the pixel can only

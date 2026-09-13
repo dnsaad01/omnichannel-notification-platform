@@ -3,12 +3,13 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 /**
- * TriggerConfigComponent (architecture plan §7). eventType is the one field
- * that matters functionally — it's mirrored up to the workflow's top-level
- * triggerEventType by WorkflowBuilderComponent, since that's the denormalized
- * column WorkflowTriggerConsumer actually filters ACTIVE workflows on
- * (Phase 1). There's exactly one TRIGGER node per workflow — the palette
- * doesn't enforce that, but WorkflowGraphValidator does at activation time.
+ * TriggerConfigComponent. eventType is the one field that matters
+ * functionally — it's mirrored up to the workflow's top-level
+ * triggerEventType by WorkflowBuilderComponent, since that's the
+ * denormalized column WorkflowTriggerConsumer actually filters ACTIVE
+ * workflows on. There's exactly one TRIGGER node per workflow — the
+ * palette doesn't enforce that, but WorkflowGraphValidator does at
+ * activation time.
  */
 @Component({
   selector: 'app-trigger-config',

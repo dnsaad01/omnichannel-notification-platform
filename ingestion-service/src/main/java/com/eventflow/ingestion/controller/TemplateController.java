@@ -5,6 +5,7 @@ import com.eventflow.ingestion.workflow.dto.TemplateResponse;
 import com.eventflow.ingestion.workflow.service.NotificationTemplateService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/templates")
 @RequiredArgsConstructor
@@ -34,7 +36,7 @@ public class TemplateController {
     /**
      * Endpoint POST pour tester l'envoi d'une notification omnicanale.
      * Reçoit le canal, le destinataire et le message, puis simule l'envoi Kafka.
-     * Unchanged for Phase 0 — this stays a simulation endpoint, not real dispatch.
+     * Reste un endpoint de simulation, sans dispatch réel.
      */
     @PostMapping("/send")
     public ResponseEntity<Map<String, Object>> sendTestNotification(@RequestBody Map<String, Object> payload) {
@@ -42,8 +44,8 @@ public class TemplateController {
         Object recipient = payload.getOrDefault("recipient", "N/A");
         Object message = payload.getOrDefault("message", "N/A");
 
-        System.out.printf("[OMNICHANNEL DISPATCH] Channel: %s | Recipient: %s | Message: %s%n", channel, recipient, message);
-        System.out.println("[KAFKA SIMULATION] Publication du message dans le topic Ingestion: " + payload);
+        log.info("Dispatch simulé - Channel: {} | Recipient: {} | Message: {}", channel, recipient, message);
+        log.info("Publication simulée dans le topic Ingestion: {}", payload);
 
         Map<String, Object> response = new HashMap<>();
         response.put("status", "SUCCESS");

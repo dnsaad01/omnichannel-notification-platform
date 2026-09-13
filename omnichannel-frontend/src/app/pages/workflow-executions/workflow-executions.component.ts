@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { WorkflowExecutionService } from '../../services/workflow-execution.service';
 import { WorkflowService } from '../../services/workflow.service';
 import { ExecutionStatus, WorkflowExecutionResponse } from '../../models/workflow.model';
@@ -10,15 +11,15 @@ const STATUS_OPTIONS: (ExecutionStatus | 'ALL')[] = ['ALL', 'RUNNING', 'WAITING'
 
 /**
  * Read-only Executions list — backed by GET /api/workflow-executions
- * (WorkflowExecutionController, Phase 1). Supports the two filters the
- * backend endpoint takes (workflowId, status) as URL query params, so
- * "Voir exécutions" links from the Workflows page land here pre-filtered
- * and the filter state survives a refresh/bookmark.
+ * (WorkflowExecutionController). Supports the two filters the backend
+ * endpoint takes (workflowId, status) as URL query params, so "Voir
+ * exécutions" links from the Workflows page land here pre-filtered and the
+ * filter state survives a refresh/bookmark.
  */
 @Component({
   selector: 'app-workflow-executions',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule],
   templateUrl: './workflow-executions.component.html'
 })
 export class WorkflowExecutionsComponent implements OnInit {

@@ -1,13 +1,8 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
-// ─────────────────────────────────────────────────────────────────────────
-// This file previously guessed at ngx-vflow's API (see git history) because
-// this sandbox has no npm registry access to install the package. That
-// guesswork is why dropped nodes never rendered: three separate mismatches,
-// each independently fatal to rendering, all now fixed against the REAL
-// source (cloned from github.com/artem-mangilev/ngx-vflow and read
-// directly — projects/ngx-vflow-lib/src/lib/vflow/{interfaces,directives,
+// ngx-vflow API contract notes (verified against the library's source,
+// projects/ngx-vflow-lib/src/lib/vflow/{interfaces,directives,
 // components/node}):
 //
 //   1. Node.point (and .data) must be real Angular WritableSignals, not
@@ -15,31 +10,27 @@ import { CommonModule } from '@angular/common';
 //      `if (rawNode.point) this.point = rawNode.point;` — handing it a
 //      plain {x,y} silently replaces the signal with a non-callable object,
 //      so every internal `this.point()` call throws and that node's
-//      rendering aborts. Fixed by wrapping point/data/width/height in
-//      Angular's own `signal()` — the exact pattern ngx-vflow's own
-//      drag-and-drop-nodes-demo component uses (not the package's
-//      `createNode`/`createNodes` convenience helpers, which also exist
-//      but are a newer addition and less certain to be present at
-//      whatever 2.x version `npm install` actually resolved here; plain
-//      `signal()` only depends on core Angular, so it carries no
-//      ngx-vflow-version risk at all).
-//   2. The custom-template directive selector is `nodeHtml`, not the
-//      invented `nodeTemplate` — see directives/template.directive.ts:
-//      `@Directive({ selector: 'ng-template[nodeHtml]' })`. The template
-//      context is also `{ $implicit: { node, data, selected, ... } }`, so
-//      the binding is bare `let-ctx` (captures $implicit), then
-//      `ctx.node`, `ctx.data()`, `ctx.selected()` — not `let-data="data"`.
+//      rendering aborts. Nodes are built here by wrapping
+//      point/data/width/height in Angular's own `signal()` — the same
+//      pattern ngx-vflow's own drag-and-drop-nodes-demo component uses
+//      (rather than the package's `createNode`/`createNodes` convenience
+//      helpers), since plain `signal()` only depends on core Angular and
+//      carries no ngx-vflow-version risk.
+//   2. The custom-template directive selector is `nodeHtml`
+//      (directives/template.directive.ts:
+//      `@Directive({ selector: 'ng-template[nodeHtml]' })`). Its template
+//      context is `{ $implicit: { node, data, selected, ... } }`, so the
+//      binding is bare `let-ctx` (captures $implicit), then `ctx.node`,
+//      `ctx.data()`, `ctx.selected()`.
 //   3. html-template nodes default to a 100×50 SVG foreignObject
-//      (NODE_DEFAULTS in node.interface.ts) — smaller than our card's real
-//      content, which an SVG foreignObject clips rather than overflows. Now
-//      passing an explicit width/height per node.
+//      (NODE_DEFAULTS in node.interface.ts) — smaller than this card's
+//      real content, which an SVG foreignObject clips rather than
+//      overflows. An explicit width/height is passed per node instead.
 //
-// Selection/drag/connect event names were also invented and don't exist on
-// VflowComponent — see the real ones cited next to each handler below
-// (confirmed against components/vflow/vflow.component.ts's hostDirectives
-// and directives/{selectable,changes-controller,node-drag-controller,
-// connection-controller}.directive.ts).
-// ─────────────────────────────────────────────────────────────────────────
+// Selection/drag/connect event names are the ones VflowComponent actually
+// exposes (components/vflow/vflow.component.ts's hostDirectives and
+// directives/{selectable,changes-controller,node-drag-controller,
+// connection-controller}.directive.ts) — see the handlers below.
 import {
   Vflow,
   Node as VNode,
@@ -76,13 +67,13 @@ const NODE_COLORS: Record<WorkflowNodeType, string> = {
   END: '#34d399' // emerald-400
 };
 
-/** Fixed card box handed to ngx-vflow per node — see fix #3 above. Sized
+/** Fixed card box handed to ngx-vflow per node (see item 3 above). Sized
  *  for the card markup in the template (icon-free two-line label). */
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 74;
 
 /**
- * Wraps ngx-vflow (architecture plan §2.5/§7, WorkflowCanvasComponent).
+ * Wraps ngx-vflow (WorkflowCanvasComponent).
  * Public contract is entirely in terms of this app's own DraftNode/DraftEdge
  * model (see workflow-draft.model.ts) — WorkflowBuilderComponent never
  * touches ngx-vflow's own Node/Edge types, only this component does.

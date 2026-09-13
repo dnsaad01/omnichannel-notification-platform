@@ -5,8 +5,9 @@
       <h1 class="text-2xl font-bold text-white">Exécutions</h1>
       <p class="text-sm text-gray-400">Historique des exécutions de workflow, déclenchées automatiquement par des événements Kafka.</p>
     </div>
-    <button (click)="fetchExecutions()" [disabled]="isLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1">
-      <span>{{ isLoading ? '⏳' : '🔄 Rafraîchir' }}</span>
+    <button (click)="fetchExecutions()" [disabled]="isLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1.5">
+      <lucide-angular name="refresh-cw" [size]="14" [class.animate-spin]="isLoading"></lucide-angular>
+      <span *ngIf="!isLoading">Rafraîchir</span>
     </button>
   </div>
 
@@ -14,7 +15,9 @@
   <div class="flex items-center flex-wrap gap-3">
     <span *ngIf="workflowIdFilter" class="bg-orange-950/50 border border-orange-900 text-orange-300 text-xs px-3 py-1.5 rounded-full flex items-center space-x-2">
       <span>Filtré sur WF-{{ workflowIdFilter }}</span>
-      <button (click)="clearWorkflowFilter()" class="text-orange-400 hover:text-white font-bold">✕</button>
+      <button (click)="clearWorkflowFilter()" class="text-orange-400 hover:text-white transition">
+        <lucide-angular name="x" [size]="13"></lucide-angular>
+      </button>
     </span>
 
     <div class="flex items-center space-x-2">
@@ -29,8 +32,9 @@
   </div>
 
   <!-- Error banner -->
-  <div *ngIf="errorMessage" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm">
-    ⚠️ {{ errorMessage }}
+  <div *ngIf="errorMessage" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+    <lucide-angular name="triangle-alert" [size]="16" class="shrink-0"></lucide-angular>
+    <span>{{ errorMessage }}</span>
   </div>
 
   <!-- Executions Table -->
@@ -61,8 +65,9 @@
           <td class="p-3 text-gray-500 text-xs">{{ exec.startedAt | date:'short' }}</td>
           <td class="p-3 text-gray-500 text-xs">{{ exec.lastActivityAt | date:'short' }}</td>
           <td class="p-3 text-right">
-            <a [routerLink]="['/workflows/executions', exec.id]" class="text-xs text-orange-400 hover:text-orange-300 font-medium">
-              Détails →
+            <a [routerLink]="['/workflows/executions', exec.id]" class="text-xs text-orange-400 hover:text-orange-300 font-medium inline-flex items-center gap-1">
+              Détails
+              <lucide-angular name="arrow-right" [size]="13"></lucide-angular>
             </a>
           </td>
         </tr>
@@ -82,12 +87,14 @@
       <span class="text-xs text-gray-500">{{ totalElements }} exécution(s) — page {{ page + 1 }} / {{ totalPages }}</span>
       <div class="flex items-center space-x-2">
         <button (click)="goToPage(page - 1)" [disabled]="page === 0"
-                class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition">
-          ← Précédent
+                class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition inline-flex items-center gap-1">
+          <lucide-angular name="arrow-left" [size]="13"></lucide-angular>
+          Précédent
         </button>
         <button (click)="goToPage(page + 1)" [disabled]="page >= totalPages - 1"
-                class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition">
-          Suivant →
+                class="bg-gray-800 hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition inline-flex items-center gap-1">
+          Suivant
+          <lucide-angular name="arrow-right" [size]="13"></lucide-angular>
         </button>
       </div>
     </div>

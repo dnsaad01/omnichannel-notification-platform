@@ -5,10 +5,10 @@ import { Page, WorkflowExecutionResponse } from '../models/workflow.model';
 
 /**
  * Read-only access to WorkflowExecutions — backed by
- * WorkflowExecutionController (ingestion-service, Phase 1),
- * /api/workflow-executions. There is deliberately no create/update/delete
- * here: executions are only ever spawned by the backend's
- * WorkflowTriggerConsumer, never launched by hand (the project's core rule).
+ * WorkflowExecutionController (ingestion-service), /api/workflow-executions.
+ * There is deliberately no create/update/delete here: executions are only
+ * ever spawned by the backend's WorkflowTriggerConsumer, never launched by
+ * hand (the project's core rule).
  */
 @Injectable({
   providedIn: 'root'

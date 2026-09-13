@@ -1,21 +1,19 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { TemplateService, TemplateRequest, TemplateResponse } from '../../services/template.service';
 
 /**
- * Phase 4 upgrade: this page used to be a single hardcoded create-only form
- * that POSTed to /api/templates and ignored the response — there was no
- * list, no edit, no delete. The backend (TemplateController, Phase 0)
- * already exposed full CRUD the whole time; only this page hadn't caught
- * up. Now: a list view backed by GET /api/templates, and a form view
- * (reusing the original editor + live phone-preview layout) that creates
- * (POST) or updates (PUT) depending on whether a template is being edited.
+ * Full CRUD Templates page: a list view backed by GET /api/templates, and
+ * a form view (with an editor + live phone-preview layout) that creates
+ * (POST) or updates (PUT) depending on whether a template is being edited,
+ * on top of the backend's TemplateController.
  */
 @Component({
   selector: 'app-templates',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './templates.component.html'
 })
 export class TemplatesComponent implements OnInit {
@@ -25,6 +23,7 @@ export class TemplatesComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
   toastMessage: string | null = null;
+  toastIcon: string = 'circle-check-big';
 
   view: 'list' | 'form' = 'list';
   editingId: number | null = null;
@@ -78,7 +77,7 @@ export class TemplatesComponent implements OnInit {
 
   save() {
     if (!this.form.name?.trim() || !this.form.body?.trim()) {
-      this.showToast('⚠️ Le nom et le message sont obligatoires.');
+      this.showToast('Le nom et le message sont obligatoires.', 'triangle-alert');
       return;
     }
 
@@ -90,7 +89,7 @@ export class TemplatesComponent implements OnInit {
     request$.subscribe({
       next: () => {
         this.isSaving = false;
-        this.showToast(this.editingId ? '💾 Template mis à jour avec succès.' : '💾 Template créé avec succès.');
+        this.showToast(this.editingId ? 'Template mis à jour avec succès.' : 'Template créé avec succès.', 'save');
         this.view = 'list';
         this.fetchTemplates();
       },
@@ -104,7 +103,7 @@ export class TemplatesComponent implements OnInit {
   remove(template: TemplateResponse) {
     this.templateService.deleteTemplate(template.id).subscribe({
       next: () => {
-        this.showToast(`🗑️ Template "${template.name}" supprimé.`);
+        this.showToast(`Template "${template.name}" supprimé.`, 'trash-2');
         this.fetchTemplates();
       },
       error: (err) => {
@@ -124,11 +123,11 @@ export class TemplatesComponent implements OnInit {
     this.templateService.testSendTemplate(payload).subscribe({
       next: () => {
         this.isTesting = false;
-        this.showToast('🚀 Message de test envoyé avec succès via Kafka/Backend !');
+        this.showToast('Message de test envoyé avec succès via Kafka/Backend !', 'rocket');
       },
       error: () => {
         this.isTesting = false;
-        this.showToast('🚀 Notification de test soumise au bus de messages Kafka !');
+        this.showToast('Notification de test soumise au bus de messages Kafka !', 'rocket');
       }
     });
   }
@@ -152,8 +151,9 @@ export class TemplatesComponent implements OnInit {
     return { name: '', channel: 'EMAIL', subject: '', body: '', status: 'ACTIVE' };
   }
 
-  private showToast(msg: string) {
+  private showToast(msg: string, icon: string = 'circle-check-big') {
     this.toastMessage = msg;
+    this.toastIcon = icon;
     setTimeout(() => {
       if (this.toastMessage === msg) {
         this.toastMessage = null;

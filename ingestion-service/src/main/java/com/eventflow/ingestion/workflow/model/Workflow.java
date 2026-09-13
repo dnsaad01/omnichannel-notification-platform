@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  * Versioning: editing an ACTIVE workflow produces a new row with the same
  * name but version + 1 and status DRAFT (see WorkflowStatus). Only one
  * version of a given workflow "identity" should be ACTIVE at a time — that
- * invariant is enforced in the Phase 1 activation endpoint, not here.
+ * invariant is enforced in the activation endpoint, not here.
  */
 @Data
 @Entity
@@ -57,13 +57,13 @@ public class Workflow {
   private WorkflowStatus status = WorkflowStatus.DRAFT;
 
   /** Denormalized from the graph's TRIGGER node — this is what
-   *  WorkflowTriggerConsumer (Phase 1) filters ACTIVE workflows on. */
+   *  WorkflowTriggerConsumer filters ACTIVE workflows on. */
   private String triggerEventType;
 
   @Builder.Default
   private Integer version = 1;
 
-  /** Set only on a copy-on-write DRAFT revision (Phase 1, WorkflowService#update):
+  /** Set only on a copy-on-write DRAFT revision (WorkflowService#update):
    *  editing an ACTIVE workflow never mutates its row in place — it inserts a
    *  new row with version + 1 and parentWorkflowId = the row being revised, so
    *  in-flight WorkflowExecutions pinned to the old row's id keep running

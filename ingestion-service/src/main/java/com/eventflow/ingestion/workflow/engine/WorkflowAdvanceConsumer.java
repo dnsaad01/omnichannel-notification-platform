@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
  * happens in WorkflowExecutionEngine#advance, which is deliberately kept
  * Kafka-agnostic and easy to unit test on its own. Fed by both
  * WorkflowTriggerConsumer (a fresh match) and WorkflowWaitScheduler (a wait
- * timer expiring) — see architecture plan §2.4 for why both go through one
- * consumer instead of one of them calling the engine directly in-process.
+ * timer expiring), both routed through this single consumer rather than
+ * calling the engine directly in-process.
  */
 @Slf4j
 @Component

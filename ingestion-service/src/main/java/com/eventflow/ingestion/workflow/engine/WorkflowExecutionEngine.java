@@ -35,8 +35,8 @@ import java.util.stream.Collectors;
 /**
  * Owns a WorkflowExecution's whole lifecycle: {@link #spawn} creates one
  * (called by WorkflowTriggerConsumer on a fresh trigger match) and
- * {@link #advance} is the advance-consumer's actual execution loop
- * (architecture plan §5) — one call is one "tick": it re-enters the
+ * {@link #advance} is the advance-consumer's actual execution loop —
+ * one call is one "tick": it re-enters the
  * execution at its currentNodeId and walks forward, node by node, until it
  * hits a suspend point (WAIT), a terminal state (COMPLETE/FAIL), or the step
  * cap (a guard against a malformed cyclic graph spinning forever).

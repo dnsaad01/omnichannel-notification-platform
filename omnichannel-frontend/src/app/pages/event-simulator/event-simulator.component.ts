@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { BusinessEventService } from '../../services/business-event.service';
 
 interface EventHistoryEntry {
@@ -11,10 +12,9 @@ interface EventHistoryEntry {
   timestamp: Date;
 }
 
-/** A few representative business events matching the architecture plan's
- *  own trigger examples (§2/§7) — purely UI convenience defaults, not a
- *  fixed enum: "Personnalisé" below lets the user publish any eventType a
- *  workflow's TRIGGER node might be configured to match on. */
+/** A few representative business events used as UI convenience defaults,
+ *  not a fixed enum: "Personnalisé" below lets the user publish any
+ *  eventType a workflow's TRIGGER node might be configured to match on. */
 const PRESETS: Record<string, string> = {
   CART_ABANDONED: JSON.stringify({ recipientId: 'client@example.com', cartValue: 89.90 }, null, 2),
   ORDER_CREATED: JSON.stringify({ recipientId: 'client@example.com', orderId: 'ORD-1001', amount: 129.90 }, null, 2),
@@ -24,26 +24,28 @@ const PRESETS: Record<string, string> = {
 };
 
 /**
- * Kafka Event Simulator — Phase 4, task 1.
+ * Kafka Event Simulator.
  *
  * Distinct from the existing low-level Kafka simulator
  * (services/simulator.service.ts, used by the Dashboard's "Envoi Simulé"
  * button), which fires a raw per-channel NotificationEvent directly at a
  * channel topic and never touches the Workflow Engine at all. This page
  * publishes a *business* event onto notification.events via
- * POST /api/business-events/publish (BusinessEventController, Phase 1) —
- * the only thing WorkflowTriggerConsumer listens on — so it's the actual
+ * POST /api/business-events/publish (BusinessEventController) — the only
+ * thing WorkflowTriggerConsumer listens on — so it's the actual
  * end-to-end way to fire a workflow from the UI, exactly like a real
  * upstream system (checkout, CRM, etc.) would.
  */
 @Component({
   selector: 'app-event-simulator',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './event-simulator.component.html'
 })
 export class EventSimulatorComponent {
   private businessEventService = inject(BusinessEventService);
+
+  toastIcon: string = 'circle-check-big';
 
   presetEventTypes = Object.keys(PRESETS);
   selectedPreset = this.presetEventTypes[0];
@@ -104,7 +106,7 @@ export class EventSimulatorComponent {
           message: `Publié sur notification.events (statut : ${res.status})`,
           timestamp: new Date()
         });
-        this.showToast(`✅ Événement "${eventType}" publié avec succès.`);
+        this.showToast(`Événement "${eventType}" publié avec succès.`, 'circle-check-big');
       },
       error: (err) => {
         this.isPublishing = false;
@@ -116,7 +118,7 @@ export class EventSimulatorComponent {
           message,
           timestamp: new Date()
         });
-        this.showToast(`⚠️ ${message}`);
+        this.showToast(message, 'triangle-alert');
       }
     });
   }
@@ -125,8 +127,9 @@ export class EventSimulatorComponent {
     this.history = [];
   }
 
-  private showToast(msg: string) {
+  private showToast(msg: string, icon: string = 'circle-check-big') {
     this.toastMessage = msg;
+    this.toastIcon = icon;
     setTimeout(() => {
       if (this.toastMessage === msg) {
         this.toastMessage = null;

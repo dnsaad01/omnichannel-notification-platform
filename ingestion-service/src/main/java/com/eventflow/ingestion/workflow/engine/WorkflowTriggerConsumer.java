@@ -13,8 +13,8 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 /**
- * Step 1 of the engine (architecture plan §5): listens for business events
- * on notification.events and spawns one WorkflowExecution per ACTIVE
+ * Entry point of the engine: listens for business events on
+ * notification.events and spawns one WorkflowExecution per ACTIVE
  * workflow whose triggerEventType matches — fan-out is intentional, since
  * activation already rejects a second ACTIVE workflow on the same event
  * type (WorkflowService#activate), so in practice this is 0 or 1 matches

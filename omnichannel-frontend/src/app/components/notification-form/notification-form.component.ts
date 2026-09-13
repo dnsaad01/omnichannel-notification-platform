@@ -2,6 +2,7 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { LucideAngularModule } from 'lucide-angular';
 import { NotificationService } from '../../services/notification.service';
 import { NotificationRequest } from '../../models/notification-request.model';
 import { ErrorResponse } from '../../models/error-response.model';
@@ -20,7 +21,7 @@ export interface ApiResponseLog {
 @Component({
   selector: 'app-notification-form',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LucideAngularModule],
   templateUrl: './notification-form.component.html',
   styleUrl: './notification-form.component.scss'
 })

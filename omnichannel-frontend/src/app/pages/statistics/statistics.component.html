@@ -8,8 +8,9 @@
     <span *ngIf="isLoading" class="text-xs text-gray-500">Chargement…</span>
   </div>
 
-  <div *ngIf="loadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3">
-    ⚠️ {{ loadError }}
+  <div *ngIf="loadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+    <lucide-angular name="triangle-alert" [size]="16" class="shrink-0"></lucide-angular>
+    <span>{{ loadError }}</span>
   </div>
 
   <!-- KPI Cards -->

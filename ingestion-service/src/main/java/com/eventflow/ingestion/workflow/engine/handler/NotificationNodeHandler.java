@@ -31,15 +31,15 @@ import java.util.UUID;
  * (TOPIC_SMS_HIGH, etc.) via KafkaTemplate — the same topics
  * SmsNotificationConsumer/PushNotificationConsumer already listen on,
  * unchanged, fire-and-forget. The engine bypasses the public
- * /api/v1/notifications/send + API-key/rate-limit path deliberately (plan
- * §4): there is no external caller here to authenticate or throttle.
+ * /api/v1/notifications/send + API-key/rate-limit path deliberately: there
+ * is no external caller here to authenticate or throttle.
  *
- * EMAIL is different (Phase 4 bugfix — see dispatchEmailSynchronously's doc
- * comment): it calls EmailService.sendEmail(...) directly and
- * synchronously, on this same thread, instead of going through Kafka/
- * EmailNotificationConsumer at all — so a real SMTP failure fails the node
- * (and the execution) immediately instead of being swallowed three classes
- * away with the execution already having moved on to COMPLETED.
+ * EMAIL is different (see dispatchEmailSynchronously's doc comment): it
+ * calls EmailService.sendEmail(...) directly and synchronously, on this
+ * same thread, instead of going through Kafka/EmailNotificationConsumer at
+ * all — so a real SMTP failure fails the node (and the execution)
+ * immediately instead of being swallowed three classes away with the
+ * execution already having moved on to COMPLETED.
  *
  * Expected node config:
  * {
@@ -50,7 +50,7 @@ import java.util.UUID;
  *                                  // try recipientId, then userId, then email, then phone
  * }
  *
- * Never a suspend point — always CONTINUE, per the architecture plan.
+ * Never a suspend point — always CONTINUE.
  */
 @Slf4j
 @Component
@@ -62,14 +62,13 @@ public class NotificationNodeHandler implements NodeHandler {
   private final NotificationTemplateRepository notificationTemplateRepository;
   private final KafkaTemplate<String, NotificationEvent> kafkaTemplate;
 
-  /** Phase 4 fix: EMAIL is dispatched synchronously through these two —
-   *  see dispatchEmailSynchronously's doc comment for the full story on
-   *  why, and appendTrackingPixel below is unchanged. */
+  /** EMAIL is dispatched synchronously through these two — see
+   *  dispatchEmailSynchronously's doc comment for why. */
   private final EmailService emailService;
   private final UserPreferenceRepository userPreferenceRepository;
   private final NotificationLogService notificationLogService;
 
-  /** Phase 4: base URL the email-open tracking pixel is served from (see
+  /** Base URL the email-open tracking pixel is served from (see
    *  TrackingController). Not final / not constructor-injected — @Value
    *  fields sit alongside @RequiredArgsConstructor's final fields the same
    *  way EmailService already does it elsewhere in this codebase. */
@@ -101,11 +100,10 @@ public class NotificationNodeHandler implements NodeHandler {
     String subject = ContextUtils.interpolate(template.getSubject(), context);
     String body = ContextUtils.interpolate(template.getBody(), context);
 
-    // Phase 4 fix (see dispatchEmailSynchronously's doc comment): EMAIL no
-    // longer goes through the fire-and-forget Kafka publish below at all —
-    // it's the only channel where a silent async failure was reported as a
-    // real bug, and the fix is to send it on this thread and actually
-    // observe the result before deciding CONTINUE vs FAIL.
+    // EMAIL does not go through the fire-and-forget Kafka publish below:
+    // it is the only channel where a silent async failure is unacceptable,
+    // so it is sent on this thread and its result is observed directly
+    // before deciding CONTINUE vs FAIL.
     if ("EMAIL".equalsIgnoreCase(channel)) {
       return dispatchEmailSynchronously(execution, node, context, recipient, subject, body);
     }
@@ -132,53 +130,41 @@ public class NotificationNodeHandler implements NodeHandler {
   }
 
   /**
-   * ⚠️ BEHAVIOR CHANGE (Phase 4 bugfix) — READ BEFORE TOUCHING
+   * ⚠️ IMPORTANT — READ BEFORE TOUCHING
    *
-   * The bug: EMAIL used to go through the exact same fire-and-forget path
-   * as SMS/PUSH below — publish a NotificationEvent onto TOPIC_EMAIL_HIGH
-   * and immediately return CONTINUE (then the engine happily proceeds to
-   * COMPLETED), regardless of whether EmailNotificationConsumer — a
-   * different class, on a different Kafka consumer thread, at some later
-   * and completely decoupled moment — ever actually got the email out.
-   * That consumer already calls EmailService.sendEmail(...) inside a
-   * try/catch and correctly logs + records STATUS_FAILED on a real SMTP/
-   * auth error (see EmailNotificationConsumer#consume) — EmailService
-   * itself was never silently swallowing anything, it already logs and
-   * rethrows on every failure (see its own class doc comment). The actual
-   * gap was architectural: nothing ever wired that consumer-side failure
-   * back to the WorkflowExecution that triggered it, because the workflow
-   * had already marked itself CONTINUE the instant the Kafka *publish*
-   * (not the send) succeeded. That's exactly why EXEC-4 showed COMPLETED
-   * with "dispatching EMAIL to ..." in the logs — that log line is the
-   * producer confirming the message was queued, not that Gmail accepted it.
+   * Unlike SMS/PUSH, EMAIL is not dispatched fire-and-forget through Kafka.
+   * Publishing a NotificationEvent and immediately returning CONTINUE would
+   * let the engine mark the execution COMPLETED before
+   * EmailNotificationConsumer — a different class, on a different Kafka
+   * consumer thread — has actually attempted the send; a real SMTP/auth
+   * failure would then surface only in that consumer's own logs, with no
+   * link back to the WorkflowExecution that triggered it.
    *
-   * The fix: for EMAIL specifically, call EmailService.sendEmail(...)
-   * directly and synchronously, right here, instead of publishing to Kafka
-   * at all. Any thrown exception (bad app password, connection refused,
-   * STARTTLS failure — EmailService already catches, logs and rethrows all
-   * of these as a RuntimeException with the real cause attached) is caught
-   * below and turned into NodeOutcome.fail(...), which
-   * WorkflowExecutionEngine#fail turns into ExecutionStatus.FAILED with the
-   * actual SMTP error text recorded on the execution's own timeline — not
-   * a silent CONTINUE/COMPLETED three classes and a Kafka hop away.
+   * To keep failures visible on the execution itself, EMAIL calls
+   * EmailService.sendEmail(...) directly and synchronously, right here,
+   * instead of publishing to Kafka. Any thrown exception (bad app
+   * password, connection refused, STARTTLS failure — EmailService already
+   * catches, logs and rethrows all of these as a RuntimeException with the
+   * real cause attached) is caught below and turned into
+   * NodeOutcome.fail(...), which WorkflowExecutionEngine#fail turns into
+   * ExecutionStatus.FAILED with the actual SMTP error text recorded on the
+   * execution's own timeline.
    *
-   * Trade-off, disclosed per this project's standing rule about changing
-   * established behavior: WorkflowExecutionEngine#advance now blocks on a
-   * live SMTP round trip for every EMAIL node (normally well under a
-   * second). A genuinely hung/unreachable SMTP host would stall that
-   * engine call until JavaMailSender's own timeouts elapse — see the new
-   * mail.smtp.{connectiontimeout,timeout,writetimeout} entries added to
-   * application.properties alongside this change specifically so "hung"
-   * degrades to "fails after 5s" rather than "hangs forever" now that this
-   * runs inline. SMS/PUSH are deliberately left exactly as they were
-   * (async, via Kafka, below) — they weren't reported broken and widening
-   * this fix to them would touch two more consumers for no requested benefit.
+   * Trade-off: WorkflowExecutionEngine#advance now blocks on a live SMTP
+   * round trip for every EMAIL node (normally well under a second). A
+   * genuinely hung/unreachable SMTP host would stall that engine call
+   * until JavaMailSender's own timeouts elapse — see the
+   * mail.smtp.{connectiontimeout,timeout,writetimeout} entries in
+   * application.properties, which bound this to a few seconds rather than
+   * an indefinite hang. SMS/PUSH stay asynchronous via Kafka (below):
+   * widening this synchronous path to them would touch two more consumers
+   * for no corresponding benefit.
    *
    * Preference suppression (recipient opted out of email, or quiet hours)
    * is preserved here by duplicating EmailNotificationConsumer's exact
-   * check — same "deliberate duplicate over shared refactor" convention
-   * this class already uses in resolveChannelTopic, so nothing about the
-   * existing async consumer path is touched by this fix either.
+   * check — the same "deliberate duplicate over shared refactor"
+   * convention this class already uses in resolveChannelTopic, so the
+   * existing async consumer path is left untouched.
    */
   private NodeOutcome dispatchEmailSynchronously(WorkflowExecution execution, NodeDef node, Map<String, Object> context,
                                                   String recipient, String subject, String body) {
@@ -276,7 +262,7 @@ public class NotificationNodeHandler implements NodeHandler {
     };
   }
 
-  /** Appends the Phase 4 tracking pixel (TrackingController,
+  /** Appends the tracking pixel (TrackingController,
    *  GET /api/tracking/open/{executionId}) to an EMAIL body. A 1x1
    *  invisible image whose fetch is how EmailTrackingService learns the
    *  recipient opened the message — see both classes' doc comments for the

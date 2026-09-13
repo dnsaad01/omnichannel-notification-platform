@@ -4,11 +4,10 @@ import { Observable } from 'rxjs';
 import { WorkflowRequest, WorkflowResponse } from '../models/workflow.model';
 
 /**
- * Real Workflow CRUD/lifecycle, backed by WorkflowController
- * (ingestion-service, Phase 1) — /api/workflows. Phase 2's Workflows page
- * only uses the read methods (getAllWorkflows/getWorkflowById); create/
- * update/activate are already real on the backend and wired here ahead of
- * the Builder UI (Phase 3), which is what will actually call them.
+ * Workflow CRUD/lifecycle client, backed by WorkflowController
+ * (ingestion-service) — /api/workflows. The Workflows page uses the read
+ * methods (getAllWorkflows/getWorkflowById); create/update/activate are
+ * used by the Builder UI.
  */
 @Injectable({
   providedIn: 'root'

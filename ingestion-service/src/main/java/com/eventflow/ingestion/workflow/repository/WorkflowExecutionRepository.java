@@ -21,12 +21,11 @@ public interface WorkflowExecutionRepository extends JpaRepository<WorkflowExecu
   Page<WorkflowExecution> findByStatus(ExecutionStatus status, Pageable pageable);
 
   /**
-   * Phase 1's wait-resume scheduler claim query (see architecture plan,
-   * section 2.3 / 5): atomically flips every due WAITING row to ADVANCING
-   * and returns which ids it actually claimed, so the caller knows exactly
-   * which executions to re-publish onto the advance topic — safe even if
-   * multiple service instances run this concurrently, since the UPDATE is
-   * serialized by Postgres.
+   * The wait-resume scheduler's claim query: atomically flips every due
+   * WAITING row to ADVANCING and returns which ids it actually claimed, so
+   * the caller knows exactly which executions to re-publish onto the
+   * advance topic — safe even if multiple service instances run this
+   * concurrently, since the UPDATE is serialized by Postgres.
    */
   @Modifying
   @Query(value = """

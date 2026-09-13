@@ -9,13 +9,12 @@ import lombok.NoArgsConstructor;
 /**
  * Input DTO for POST/PUT /api/templates.
  *
- * `content` is a legacy alias: the existing Angular Templates page
- * (pages/templates/templates.component.ts) currently POSTs
- * { name, channel, content } — there's no `body` field on the wire yet.
- * The service maps content -> body when body is blank, so the current UI
- * keeps working unchanged; the real field going forward is `body`. This
- * alias should be dropped once the Templates page is upgraded to real CRUD
- * (architecture plan, Phase 4).
+ * `content` is a legacy alias: the Angular Templates page
+ * (pages/templates/templates.component.ts) POSTs
+ * { name, channel, content } — there's no `body` field on the wire.
+ * The service maps content -> body when body is blank, so the UI keeps
+ * working unchanged; the canonical field is `body`. This alias should be
+ * dropped once the Templates page no longer needs it.
  */
 @Data
 @Builder

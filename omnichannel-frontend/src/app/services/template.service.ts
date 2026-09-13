@@ -22,11 +22,9 @@ export interface TemplateRequest {
 }
 
 /**
- * Phase 4: extended with getTemplateById/updateTemplate/deleteTemplate to
- * back the Templates page's upgrade from create-only to full CRUD. All
- * three endpoints already existed on the backend since Phase 0
- * (TemplateController) — only this service and the page itself were
- * lagging behind it.
+ * Full CRUD client for /api/templates: getTemplateById/updateTemplate/
+ * deleteTemplate back the Templates page's list/edit/delete flows, on top
+ * of the backend's TemplateController.
  */
 @Injectable({
   providedIn: 'root'

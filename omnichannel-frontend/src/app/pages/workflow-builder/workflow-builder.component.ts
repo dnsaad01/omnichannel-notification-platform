@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { WorkflowService } from '../../services/workflow.service';
 import { TemplateService } from '../../services/template.service';
 import { WorkflowRequest, WorkflowResponse, WorkflowStatus } from '../../models/workflow.model';
@@ -24,8 +25,8 @@ import { NodeConfigPanelComponent } from './node-config-panel/node-config-panel.
 import { TemplateOption } from './config-panels/notification-config.component';
 
 /**
- * The Workflow Builder page (architecture plan §7, WorkflowBuilderComponent):
- * toolbar (name/description, Save/Activate/Deactivate) + 3-pane layout
+ * The Workflow Builder page (WorkflowBuilderComponent): toolbar
+ * (name/description, Save/Activate/Deactivate) + 3-pane layout
  * (palette | canvas | config panel). Owns the single source of truth for
  * the graph being edited — a plain WorkflowGraph (workflow-draft.model.ts)
  * that serializes 1:1 onto the backend's definitionJson.
@@ -33,12 +34,12 @@ import { TemplateOption } from './config-panels/notification-config.component';
  * Two modes, same component: /workflows/new (no :id — starts from
  * starterGraph()) and /workflows/:id/edit (loads the existing workflow and
  * parses its definitionJson). Both save through the same WorkflowService
- * methods added in Phase 2.
+ * methods.
  */
 @Component({
   selector: 'app-workflow-builder',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, NodePaletteComponent, WorkflowCanvasComponent, NodeConfigPanelComponent],
+  imports: [CommonModule, FormsModule, RouterLink, LucideAngularModule, NodePaletteComponent, WorkflowCanvasComponent, NodeConfigPanelComponent],
   templateUrl: './workflow-builder.component.html'
 })
 export class WorkflowBuilderComponent implements OnInit {
@@ -61,6 +62,7 @@ export class WorkflowBuilderComponent implements OnInit {
   isSaving = false;
   errorMessage: string | null = null;
   toastMessage: string | null = null;
+  toastIcon: string = 'circle-check-big';
 
   get selectedNode(): DraftNode | null {
     return this.graph.nodes.find(n => n.id === this.selectedNodeId) ?? null;
@@ -129,7 +131,7 @@ export class WorkflowBuilderComponent implements OnInit {
 
   onNodeDropped(event: NodeDroppedEvent) {
     if (event.type === 'TRIGGER' && this.graph.nodes.some(n => n.type === 'TRIGGER')) {
-      this.showToast('⚠️ Un seul nœud Déclencheur est autorisé par workflow.');
+      this.showToast('Un seul nœud Déclencheur est autorisé par workflow.', 'triangle-alert');
       return;
     }
 
@@ -147,7 +149,7 @@ export class WorkflowBuilderComponent implements OnInit {
 
   onConnectionCreated(event: ConnectionCreatedEvent) {
     if (event.source === event.target) {
-      this.showToast('⚠️ Un nœud ne peut pas se relier à lui-même.');
+      this.showToast('Un nœud ne peut pas se relier à lui-même.', 'triangle-alert');
       return;
     }
 
@@ -157,7 +159,7 @@ export class WorkflowBuilderComponent implements OnInit {
     }
 
     if (sourceNode.type === 'END') {
-      this.showToast('⚠️ Un nœud Fin ne peut pas avoir de connexion sortante.');
+      this.showToast('Un nœud Fin ne peut pas avoir de connexion sortante.', 'triangle-alert');
       return;
     }
 
@@ -176,7 +178,7 @@ export class WorkflowBuilderComponent implements OnInit {
         sourceHandle = 'no';
         edges = this.graph.edges;
       } else {
-        this.showToast('⚠️ Ce nœud Gateway a déjà ses deux branches (oui/non).');
+        this.showToast('Ce nœud Gateway a déjà ses deux branches (oui/non).', 'triangle-alert');
         return;
       }
     }
@@ -236,18 +238,18 @@ export class WorkflowBuilderComponent implements OnInit {
    *
    * The graph's nodes/edges aren't sent as separate top-level fields: the
    * backend's WorkflowRequest DTO only has a single `definitionJson` string
-   * field (established Phase 0 contract — see workflow.model.ts's
-   * WorkflowRequest doc comment), so serializeDefinitionJson(this.graph)
-   * (workflow-draft.model.ts) is what actually carries {nodes, edges} across
-   * the wire, JSON-stringified into that one field.
+   * field (see workflow.model.ts's WorkflowRequest doc comment), so
+   * serializeDefinitionJson(this.graph) (workflow-draft.model.ts) is what
+   * actually carries {nodes, edges} across the wire, JSON-stringified into
+   * that one field.
    */
   onSave() {
     if (!this.name.trim()) {
-      this.showToast('⚠️ Le workflow doit avoir un nom.');
+      this.showToast('Le workflow doit avoir un nom.', 'triangle-alert');
       return;
     }
     if (!this.triggerEventType) {
-      this.showToast('⚠️ Configurez le type d\'événement sur le nœud Déclencheur avant d\'enregistrer.');
+      this.showToast('Configurez le type d\'événement sur le nœud Déclencheur avant d\'enregistrer.', 'triangle-alert');
       return;
     }
 
@@ -272,10 +274,10 @@ export class WorkflowBuilderComponent implements OnInit {
         this.applyWorkflowResponse(wf);
 
         if (wasNewRevision) {
-          this.showToast('💾 Ce workflow était ACTIF — une nouvelle révision brouillon a été créée.');
+          this.showToast('Ce workflow était ACTIF — une nouvelle révision brouillon a été créée.', 'save');
           this.router.navigate(['/workflows', wf.id, 'edit']);
         } else {
-          this.showToast('💾 Workflow enregistré.');
+          this.showToast('Workflow enregistré.', 'save');
           if (!this.route.snapshot.paramMap.get('id')) {
             this.router.navigate(['/workflows', wf.id, 'edit']);
           }
@@ -296,7 +298,7 @@ export class WorkflowBuilderComponent implements OnInit {
     this.workflowService.activateWorkflow(this.workflowId).subscribe({
       next: (wf) => {
         this.applyWorkflowResponse(wf);
-        this.showToast('✅ Workflow activé.');
+        this.showToast('Workflow activé.', 'circle-check-big');
       },
       error: (err) => {
         this.errorMessage = this.extractErrorMessage(err, 'Échec de l\'activation — vérifiez le graphe (un seul Déclencheur, chaque Gateway avec ses deux branches, aucun nœud isolé).');
@@ -311,7 +313,7 @@ export class WorkflowBuilderComponent implements OnInit {
     this.workflowService.deactivateWorkflow(this.workflowId).subscribe({
       next: (wf) => {
         this.applyWorkflowResponse(wf);
-        this.showToast('⏸️ Workflow désactivé.');
+        this.showToast('Workflow désactivé.', 'pause');
       },
       error: (err) => {
         this.errorMessage = this.extractErrorMessage(err, 'Échec de la désactivation.');
@@ -338,8 +340,9 @@ export class WorkflowBuilderComponent implements OnInit {
     return err?.error?.message || fallback;
   }
 
-  private showToast(msg: string) {
+  private showToast(msg: string, icon: string = 'circle-check-big') {
     this.toastMessage = msg;
+    this.toastIcon = icon;
     setTimeout(() => {
       if (this.toastMessage === msg) {
         this.toastMessage = null;

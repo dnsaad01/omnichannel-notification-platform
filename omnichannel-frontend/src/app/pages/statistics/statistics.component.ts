@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { StatisticsService } from '../../services/statistics.service';
 import { ChannelStatistics } from '../../models/statistics.model';
 
 @Component({
   selector: 'app-statistics',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './statistics.component.html'
 })
 export class StatisticsComponent implements OnInit {

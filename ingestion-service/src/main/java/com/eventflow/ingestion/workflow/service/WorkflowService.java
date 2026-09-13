@@ -18,11 +18,11 @@ import java.util.List;
 
 /**
  * CRUD + lifecycle (activate/deactivate/duplicate) for Workflow definitions.
- * See the architecture plan §2.7 for the versioning policy this implements:
- * editing an ACTIVE workflow never mutates it in place — it inserts a new
- * DRAFT row (parentWorkflowId = the row being revised); activating that
- * draft archives the parent. In-flight WorkflowExecutions stay pinned to
- * whichever row id they started against, so they're never affected.
+ * Versioning policy: editing an ACTIVE workflow never mutates it in place —
+ * it inserts a new DRAFT row (parentWorkflowId = the row being revised);
+ * activating that draft archives the parent. In-flight WorkflowExecutions
+ * stay pinned to whichever row id they started against, so they're never
+ * affected.
  */
 @Slf4j
 @Service
@@ -94,10 +94,10 @@ public class WorkflowService {
   }
 
   /**
-   * Validates the graph (WorkflowGraphValidator) and, per the open question
-   * in the plan §8.1, rejects activation if another ACTIVE workflow already
-   * claims the same triggerEventType (a workflow being re-activated as its
-   * own new version doesn't count as "another" one).
+   * Validates the graph (WorkflowGraphValidator) and rejects activation if
+   * another ACTIVE workflow already claims the same triggerEventType (a
+   * workflow being re-activated as its own new version doesn't count as
+   * "another" one).
    */
   @Transactional
   public WorkflowResponse activate(Long id) {
@@ -134,8 +134,8 @@ public class WorkflowService {
   }
 
   /**
-   * Does NOT touch in-flight WorkflowExecutions (plan §8.2) — it only stops
-   * this workflow from matching new trigger events going forward.
+   * Does NOT touch in-flight WorkflowExecutions — it only stops this
+   * workflow from matching new trigger events going forward.
    */
   public WorkflowResponse deactivate(Long id) {
     Workflow workflow = getOrThrow(id);

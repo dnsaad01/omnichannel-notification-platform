@@ -5,8 +5,9 @@
       <button
         *ngIf="canDelete"
         (click)="deleteNode.emit()"
-        class="text-xs text-rose-400 hover:text-rose-300 font-medium">
-        🗑 Supprimer
+        class="text-xs text-rose-400 hover:text-rose-300 font-medium inline-flex items-center gap-1">
+        <lucide-angular name="trash-2" [size]="13"></lucide-angular>
+        Supprimer
       </button>
     </div>
 

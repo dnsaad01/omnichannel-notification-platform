@@ -4,9 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/** @EnableScheduling added for the Workflow Engine's wait-resume job
- *  (WorkflowWaitScheduler, Phase 1) — nothing else in the app used
- *  @Scheduled before this. */
+/** @EnableScheduling activates the Workflow Engine's wait-resume job
+ *  (WorkflowWaitScheduler) — nothing else in the app uses @Scheduled. */
 @EnableScheduling
 @SpringBootApplication
 public class IngestionServiceApplication {

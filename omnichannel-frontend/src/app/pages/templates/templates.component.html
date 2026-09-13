@@ -1,13 +1,17 @@
 <div class="space-y-6">
   <!-- Toast Alert Banner -->
   <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-emerald-100 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all">
+    <lucide-angular [name]="toastIcon" [size]="18" class="shrink-0"></lucide-angular>
     <span>{{ toastMessage }}</span>
-    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white font-bold ml-2">✕</button>
+    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white transition ml-2">
+      <lucide-angular name="x" [size]="16"></lucide-angular>
+    </button>
   </div>
 
   <!-- Error banner -->
-  <div *ngIf="errorMessage" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm">
-    ⚠️ {{ errorMessage }}
+  <div *ngIf="errorMessage" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+    <lucide-angular name="triangle-alert" [size]="16" class="shrink-0"></lucide-angular>
+    <span>{{ errorMessage }}</span>
   </div>
 
   <!-- ========================= LIST VIEW ========================= -->
@@ -18,11 +22,13 @@
         <p class="text-sm text-gray-400">Modèles de notification réutilisables, référencés par les nœuds Notification des workflows.</p>
       </div>
       <div class="flex items-center space-x-3">
-        <button (click)="fetchTemplates()" [disabled]="isLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1">
-          <span>{{ isLoading ? '⏳' : '🔄 Rafraîchir' }}</span>
+        <button (click)="fetchTemplates()" [disabled]="isLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3.5 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1.5">
+          <lucide-angular name="refresh-cw" [size]="14" [class.animate-spin]="isLoading"></lucide-angular>
+          <span *ngIf="!isLoading">Rafraîchir</span>
         </button>
-        <button (click)="createNew()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-3.5 py-1.5 rounded-lg transition font-medium flex items-center space-x-1 shadow">
-          <span>+ Nouveau template</span>
+        <button (click)="createNew()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-3.5 py-1.5 rounded-lg transition font-medium flex items-center space-x-1.5 shadow">
+          <lucide-angular name="plus" [size]="14"></lucide-angular>
+          <span>Nouveau template</span>
         </button>
       </div>
     </div>
@@ -66,7 +72,7 @@
 
           <tr *ngIf="!isLoading && templates.length === 0">
             <td colspan="7" class="p-8 text-center text-gray-500">
-              Aucun template pour le moment. Cliquez sur <span class="text-orange-400">+ Nouveau template</span> pour en créer un.
+              Aucun template pour le moment. Cliquez sur <span class="text-orange-400">Nouveau template</span> pour en créer un.
             </td>
           </tr>
           <tr *ngIf="isLoading">
@@ -89,11 +95,13 @@
         <button (click)="cancel()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-700">
           Annuler
         </button>
-        <button (click)="onTestSend()" [disabled]="isTesting" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-700">
-          {{ isTesting ? 'Envoi...' : '🚀 Test Send' }}
+        <button (click)="onTestSend()" [disabled]="isTesting" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition border border-gray-700 inline-flex items-center gap-1.5">
+          <lucide-angular *ngIf="!isTesting" name="rocket" [size]="15"></lucide-angular>
+          <span>{{ isTesting ? 'Envoi...' : 'Test Send' }}</span>
         </button>
-        <button (click)="save()" [disabled]="isSaving" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow">
-          {{ isSaving ? 'Sauvegarde...' : '💾 Sauvegarder' }}
+        <button (click)="save()" [disabled]="isSaving" class="bg-orange-600 hover:bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow inline-flex items-center gap-1.5">
+          <lucide-angular *ngIf="!isSaving" name="save" [size]="15"></lucide-angular>
+          <span>{{ isSaving ? 'Sauvegarde...' : 'Sauvegarder' }}</span>
         </button>
       </div>
     </div>

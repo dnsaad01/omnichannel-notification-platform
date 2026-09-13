@@ -1,12 +1,13 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { LucideAngularModule } from 'lucide-angular';
 import { DashboardService } from '../../services/dashboard.service';
 import { SimulatorService } from '../../services/simulator.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {
@@ -48,7 +49,7 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.isRefreshing = false;
-        console.log('Using local fallback stats');
+        console.warn('Using local fallback stats');
       }
     });
 
@@ -59,27 +60,30 @@ export class DashboardComponent implements OnInit {
         }
       },
       error: () => {
-        console.log('Using local fallback logs');
+        console.warn('Using local fallback logs');
       }
     });
   }
 
   refreshDashboard() {
     this.fetchDashboardData();
-    this.showToast('📊 Données du Dashboard actualisées !');
+    this.showToast('Données du Dashboard actualisées !', 'refresh-cw');
   }
 
   triggerSimulatedDispatch() {
     this.simulatorService.sendSingleEvent().subscribe({
       next: (res) => {
-        this.showToast(`⚡ Dispatched simulated notification ${res.event?.eventId || ''}!`);
+        this.showToast(`Dispatched simulated notification ${res.event?.eventId || ''}!`, 'zap');
         this.fetchDashboardData();
       }
     });
   }
 
-  private showToast(msg: string) {
+  toastIcon: string = 'circle-check-big';
+
+  private showToast(msg: string, icon: string = 'circle-check-big') {
     this.toastMessage = msg;
+    this.toastIcon = icon;
     setTimeout(() => {
       if (this.toastMessage === msg) {
         this.toastMessage = null;

@@ -1,8 +1,8 @@
 /**
  * Builder-side graph model. Deliberately shaped to serialize 1:1 onto the
  * backend's definitionJson (com.eventflow.ingestion.workflow.engine.graph
- * .NodeDef / EdgeDef, Phase 1) — same field names, so parse/serialize here
- * are trivial JSON (de)serialization with no field mapping in between.
+ * .NodeDef / EdgeDef) — same field names, so parse/serialize here are
+ * trivial JSON (de)serialization with no field mapping in between.
  */
 
 export type WorkflowNodeType = 'TRIGGER' | 'NOTIFICATION' | 'WAIT' | 'GATEWAY' | 'END';

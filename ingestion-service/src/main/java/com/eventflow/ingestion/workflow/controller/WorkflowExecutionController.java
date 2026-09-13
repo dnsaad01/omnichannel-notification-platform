@@ -19,8 +19,8 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Read-only — executions are only ever created by WorkflowTriggerConsumer,
  * per the project's core rule that users configure workflows but never
- * launch them by hand. This is the Phase 1 way to actually observe the
- * engine working, ahead of the Phase 2 Exécutions UI.
+ * launch them by hand. This is what backs the Exécutions UI and lets the
+ * engine's behavior be observed directly.
  */
 @RestController
 @RequestMapping("/api/workflow-executions")

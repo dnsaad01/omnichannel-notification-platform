@@ -92,6 +92,7 @@ services:
       - "8081:8080"
     volumes:
       - ./ingestion-service/src/main/resources/realm-export.json:/opt/keycloak/data/import/realm.json:ro
+      - ./omnicanal:/opt/keycloak/themes/omnicanal
 
   # ---------------------------------------------------------------------------
   # 7. Prometheus (Metrics Monitoring: http://localhost:9090)

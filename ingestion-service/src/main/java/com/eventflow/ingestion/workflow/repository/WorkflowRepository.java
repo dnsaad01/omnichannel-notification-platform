@@ -10,7 +10,7 @@ import java.util.List;
 @Repository
 public interface WorkflowRepository extends JpaRepository<Workflow, Long> {
 
-  /** Used by Phase 1's WorkflowTriggerConsumer to find which active
+  /** Used by WorkflowTriggerConsumer to find which active
    *  workflow(s) should spawn an execution for an incoming business event. */
   List<Workflow> findByStatusAndTriggerEventType(WorkflowStatus status, String triggerEventType);
 

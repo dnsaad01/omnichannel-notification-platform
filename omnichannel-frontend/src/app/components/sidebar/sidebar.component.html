@@ -13,28 +13,36 @@
        can never encroach on the profile block below it. -->
   <nav class="flex-1 overflow-y-auto space-y-1 px-3 py-4">
     <a routerLink="/dashboard" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>📊 Dashboard</span>
+      <lucide-angular name="layout-dashboard" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Dashboard</span>
     </a>
     <a routerLink="/templates" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>📄 Templates</span>
+      <lucide-angular name="file-text" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Templates</span>
     </a>
     <a routerLink="/workflows" routerLinkActive="bg-orange-600 text-white" [routerLinkActiveOptions]="{ exact: true }" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>⚙️ Cinématiques / Workflows</span>
+      <lucide-angular name="settings" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Cinématiques / Workflows</span>
     </a>
     <a routerLink="/workflows/executions" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>🧭 Exécutions</span>
+      <lucide-angular name="compass" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Exécutions</span>
     </a>
     <a routerLink="/event-simulator" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>🧪 Simulateur d'événements</span>
+      <lucide-angular name="flask-conical" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Simulateur d'événements</span>
     </a>
     <a routerLink="/notifications" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>🔔 Notifications</span>
+      <lucide-angular name="bell" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Notifications</span>
     </a>
     <a routerLink="/statistics" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>📈 Statistiques</span>
+      <lucide-angular name="trending-up" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Statistiques</span>
     </a>
     <a routerLink="/monitoring" routerLinkActive="bg-orange-600 text-white" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-gray-800 transition">
-      <span>🖥️ Monitoring</span>
+      <lucide-angular name="monitor" [size]="18" class="shrink-0"></lucide-angular>
+      <span>Monitoring</span>
     </a>
   </nav>
 
@@ -53,7 +61,8 @@
         type="button"
         class="w-full flex items-center justify-center space-x-2 px-3 py-2.5 rounded-lg text-gray-300 hover:bg-rose-950 hover:text-rose-300 transition"
       >
-        <span>🚪 Déconnexion</span>
+        <lucide-angular name="log-out" [size]="16" class="shrink-0"></lucide-angular>
+        <span>Déconnexion</span>
       </button>
     </div>
   </div>

@@ -21,9 +21,9 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 
 /**
- * One run of a Workflow, created only by WorkflowTriggerConsumer (Phase 1) —
- * never manually, per the project's core rule that users configure workflows
- * but never launch them by hand.
+ * One run of a Workflow, created only by WorkflowTriggerConsumer — never
+ * manually, per the project's core rule that users configure workflows but
+ * never launch them by hand.
  *
  * `version` (@Version, JPA optimistic locking) guards against two advance
  * attempts racing on the same execution — e.g. the wait-resume scheduler and

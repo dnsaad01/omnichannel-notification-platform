@@ -16,10 +16,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The backend half of the Kafka Event Simulator (frontend page comes in
- * Phase 4) — publishes a business event onto notification.events, where
- * WorkflowTriggerConsumer picks it up. This is the entry point for
- * exercising the whole engine end-to-end with nothing but curl:
+ * The backend half of the Kafka Event Simulator — publishes a business
+ * event onto notification.events, where WorkflowTriggerConsumer picks it
+ * up. This is the entry point for exercising the whole engine end-to-end
+ * with nothing but curl:
  *
  * curl -X POST http://localhost:8082/api/business-events/publish \
  *   -H "Content-Type: application/json" \

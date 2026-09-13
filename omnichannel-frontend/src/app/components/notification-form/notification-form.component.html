@@ -2,7 +2,7 @@
   <!-- Header -->
   <header class="app-header">
     <div class="header-brand">
-      <div class="logo-icon">⚡</div>
+      <div class="logo-icon"><lucide-angular name="zap" [size]="26"></lucide-angular></div>
       <div>
         <h1>Omnichannel Ingestion Console</h1>
         <p>Send real-time multi-channel notifications & track backend status responses</p>
@@ -14,7 +14,7 @@
     <!-- Form Panel -->
     <section class="card form-card">
       <div class="card-header">
-        <h2><span class="icon">📤</span> Send Notification</h2>
+        <h2><span class="icon"><lucide-angular name="send" [size]="19"></lucide-angular></span> Send Notification</h2>
         <span class="badge endpoint-badge">POST /api/v1/notifications/send</span>
       </div>
 
@@ -23,7 +23,7 @@
         <div class="form-group">
           <label for="apiKey">API Key <span class="required">*</span></label>
           <div class="input-wrapper">
-            <span class="input-icon">🔑</span>
+            <span class="input-icon"><lucide-angular name="key" [size]="15"></lucide-angular></span>
             <input
               type="text"
               id="apiKey"
@@ -40,7 +40,7 @@
           <div class="form-group flex-1">
             <label for="recipientId">Recipient ID <span class="required">*</span></label>
             <div class="input-wrapper">
-              <span class="input-icon">👤</span>
+              <span class="input-icon"><lucide-angular name="user" [size]="15"></lucide-angular></span>
               <input
                 type="text"
                 id="recipientId"
@@ -56,11 +56,11 @@
           <div class="form-group flex-1">
             <label for="channel">Channel <span class="required">*</span></label>
             <div class="input-wrapper">
-              <span class="input-icon">📡</span>
+              <span class="input-icon"><lucide-angular name="radio" [size]="15"></lucide-angular></span>
               <select id="channel" name="channel" [(ngModel)]="channel" required>
-                <option value="EMAIL">📧 EMAIL</option>
-                <option value="SMS">💬 SMS</option>
-                <option value="PUSH">🔔 PUSH</option>
+                <option value="EMAIL">EMAIL</option>
+                <option value="SMS">SMS</option>
+                <option value="PUSH">PUSH</option>
               </select>
             </div>
           </div>
@@ -71,10 +71,10 @@
           <div class="form-group flex-1">
             <label for="priority">Priority</label>
             <div class="input-wrapper">
-              <span class="input-icon">⚡</span>
+              <span class="input-icon"><lucide-angular name="zap" [size]="15"></lucide-angular></span>
               <select id="priority" name="priority" [(ngModel)]="priority">
-                <option value="HIGH">🔴 HIGH</option>
-                <option value="LOW">🔵 LOW</option>
+                <option value="HIGH">HIGH</option>
+                <option value="LOW">LOW</option>
               </select>
             </div>
           </div>
@@ -83,7 +83,7 @@
           <div class="form-group flex-2">
             <label for="subject">Subject <span class="required">*</span></label>
             <div class="input-wrapper">
-              <span class="input-icon">📝</span>
+              <span class="input-icon"><lucide-angular name="pencil" [size]="15"></lucide-angular></span>
               <input
                 type="text"
                 id="subject"
@@ -113,7 +113,7 @@
 
         <!-- Submit Button -->
         <button type="submit" class="submit-btn" [disabled]="!notificationForm.form.valid || isLoading">
-          <span *ngIf="!isLoading">🚀 Dispatch Notification</span>
+          <span *ngIf="!isLoading" class="inline-flex items-center gap-2"><lucide-angular name="rocket" [size]="16"></lucide-angular>Dispatch Notification</span>
           <span *ngIf="isLoading" class="spinner-container">
             <span class="spinner"></span> Dispatching...
           </span>
@@ -124,7 +124,7 @@
     <!-- Response Tracker & Alerts Panel -->
     <section class="card response-card">
       <div class="card-header">
-        <h2><span class="icon">📊</span> Response Tracker</h2>
+        <h2><span class="icon"><lucide-angular name="chart-column" [size]="19"></lucide-angular></span> Response Tracker</h2>
         <button *ngIf="responseLogs.length > 0" (click)="clearLogs()" class="clear-btn">
           Clear Logs
         </button>
@@ -132,7 +132,7 @@
 
       <!-- Live Success Alert Banner -->
       <div *ngIf="latestSuccessMessage" class="alert alert-success">
-        <div class="alert-icon">✅</div>
+        <div class="alert-icon"><lucide-angular name="circle-check-big" [size]="24"></lucide-angular></div>
         <div class="alert-content">
           <h4>202 ACCEPTED</h4>
           <p>{{ latestSuccessMessage }}</p>
@@ -141,7 +141,7 @@
 
       <!-- Live Error Response Card -->
       <div *ngIf="latestError" class="alert alert-danger">
-        <div class="alert-icon">⚠️</div>
+        <div class="alert-icon"><lucide-angular name="triangle-alert" [size]="24"></lucide-angular></div>
         <div class="alert-content">
           <div class="error-header">
             <span class="status-code">{{ latestError.status }}</span>

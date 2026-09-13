@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Used for both the executions list (logs omitted — null) and the execution
  * detail endpoint (logs populated), so the frontend's Executions and
- * Execution Detail pages (Phase 2) can share one response shape.
+ * Execution Detail pages can share one response shape.
  */
 @Data
 @Builder

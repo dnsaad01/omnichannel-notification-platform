@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Base64;
 
 /**
- * Email-open tracking pixel — the architecture plan's §2.6 note that
- * context.email.opened needs "something to set it" is this endpoint.
+ * Email-open tracking pixel — this endpoint is what actually sets
+ * context.email.opened.
  * NotificationNodeHandler embeds
  * <img src=".../api/tracking/open/{executionId}"> into EMAIL-channel
  * bodies (requires EmailService to send HTML — see its class-level note);

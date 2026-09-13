@@ -1,8 +1,11 @@
 <div class="space-y-6">
   <!-- Toast -->
   <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-emerald-100 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all">
+    <lucide-angular [name]="toastIcon" [size]="18" class="shrink-0"></lucide-angular>
     <span>{{ toastMessage }}</span>
-    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white font-bold ml-2">✕</button>
+    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white transition ml-2">
+      <lucide-angular name="x" [size]="16"></lucide-angular>
+    </button>
   </div>
 
   <!-- Header -->
@@ -46,12 +49,14 @@
         <p class="text-xs text-gray-500 mt-1">Champs courants utilisés par les workflows : recipientId, userId, email, phone (voir NotificationNodeHandler).</p>
       </div>
 
-      <div *ngIf="payloadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm">
-        ⚠️ {{ payloadError }}
+      <div *ngIf="payloadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 px-4 py-3 rounded-lg text-sm flex items-center gap-2">
+        <lucide-angular name="triangle-alert" [size]="16" class="shrink-0"></lucide-angular>
+        <span>{{ payloadError }}</span>
       </div>
 
-      <button (click)="publish()" [disabled]="isPublishing" class="w-full bg-orange-600 hover:bg-orange-500 text-white px-4 py-3 rounded-lg text-sm font-semibold transition shadow">
-        {{ isPublishing ? 'Publication…' : '📤 Publier l\'événement' }}
+      <button (click)="publish()" [disabled]="isPublishing" class="w-full bg-orange-600 hover:bg-orange-500 text-white px-4 py-3 rounded-lg text-sm font-semibold transition shadow flex items-center justify-center gap-2">
+        <lucide-angular *ngIf="!isPublishing" name="send" [size]="16"></lucide-angular>
+        <span>{{ isPublishing ? 'Publication…' : "Publier l'événement" }}</span>
       </button>
     </div>
 

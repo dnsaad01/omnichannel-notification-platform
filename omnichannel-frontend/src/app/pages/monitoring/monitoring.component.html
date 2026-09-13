@@ -1,8 +1,11 @@
 <div class="space-y-6">
   <!-- Toast Notification Alert -->
   <div *ngIf="toastMessage" class="fixed top-5 right-5 z-50 bg-emerald-900 border border-emerald-500 text-emerald-100 px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 transition-all animate-bounce">
+    <lucide-angular [name]="toastIcon" [size]="18" class="shrink-0"></lucide-angular>
     <span>{{ toastMessage }}</span>
-    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white font-bold ml-2">✕</button>
+    <button (click)="toastMessage = null" class="text-emerald-300 hover:text-white transition ml-2">
+      <lucide-angular name="x" [size]="16"></lucide-angular>
+    </button>
   </div>
 
   <!-- Header -->
@@ -12,20 +15,24 @@
       <p class="text-sm text-gray-400">État de santé de la plateforme, gestion des files et simulateur de trafic client.</p>
     </div>
     <div class="flex items-center space-x-3">
-      <button (click)="refreshHealth()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1">
-        <span>🔄 Rafraîchir</span>
+      <button (click)="refreshHealth()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-3 py-1.5 rounded-lg border border-gray-700 transition flex items-center space-x-1.5">
+        <lucide-angular name="refresh-cw" [size]="14"></lucide-angular>
+        <span>Rafraîchir</span>
       </button>
-      <span *ngIf="!health" class="bg-gray-800 text-gray-400 border border-gray-700 text-xs px-3 py-1 rounded-full font-medium">
-        ○ Vérification en cours…
+      <span *ngIf="!health" class="bg-gray-800 text-gray-400 border border-gray-700 text-xs px-3 py-1 rounded-full font-medium flex items-center space-x-1.5">
+        <lucide-angular name="circle" [size]="8"></lucide-angular>
+        <span>Vérification en cours…</span>
       </span>
-      <span *ngIf="health" [ngClass]="health.healthy ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium">
-        {{ health.healthy ? '● Infrastructure Stable' : '● Infrastructure Dégradée' }}
+      <span *ngIf="health" [ngClass]="health.healthy ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium flex items-center space-x-1.5">
+        <lucide-angular name="circle" [size]="8" [class]="health.healthy ? 'fill-emerald-400' : 'fill-rose-400'"></lucide-angular>
+        <span>{{ health.healthy ? 'Infrastructure Stable' : 'Infrastructure Dégradée' }}</span>
       </span>
     </div>
   </div>
 
-  <div *ngIf="healthLoadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3">
-    ⚠️ {{ healthLoadError }}
+  <div *ngIf="healthLoadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3 flex items-center gap-2">
+    <lucide-angular name="triangle-alert" [size]="16" class="shrink-0"></lucide-angular>
+    <span>{{ healthLoadError }}</span>
   </div>
 
   <!-- Status Cards -->
@@ -47,8 +54,8 @@
     </div>
     <div class="bg-gray-900 border border-gray-800 p-5 rounded-xl shadow">
       <p class="text-xs font-semibold text-gray-400 uppercase">Dead Letter Queue (DLQ)</p>
-      <p class="font-medium text-sm mt-2" [ngClass]="dlqMessages.length > 0 ? 'text-amber-400' : 'text-emerald-400'">{{ dlqCount }}</p>
-      <p class="text-[10px] text-gray-600 mt-1">Table dlq_messages (topic Kafka notification-dlq)</p>
+      <p class="text-amber-400 font-medium text-sm mt-2">{{ dlqCount }}</p>
+      <p class="text-[10px] text-gray-600 mt-1">Simulation locale (non connectée au backend)</p>
     </div>
   </div>
 
@@ -56,21 +63,27 @@
   <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow">
     <div class="flex justify-between items-center border-b border-gray-800 pb-3 mb-4">
       <div class="flex items-center space-x-3">
-        <span class="text-xl">⚡</span>
+        <lucide-angular name="zap" [size]="20" class="text-orange-400"></lucide-angular>
         <div>
           <h3 class="text-base font-semibold text-white">Simulateur de Producteur Kafka (Backend Service)</h3>
           <p class="text-xs text-gray-400">Générez du trafic et des événements de notifications simulés vers le topic <code class="text-orange-400">notification.ingestion</code>.</p>
         </div>
       </div>
-      <span [ngClass]="simulatorStatus.active ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium">
-        {{ simulatorStatus.active ? '● Continuous Producer RUNNING' : '○ Producer STOPPED' }}
+      <span [ngClass]="simulatorStatus.active ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-rose-950 text-rose-400 border-rose-800'" class="border text-xs px-3 py-1 rounded-full font-medium flex items-center space-x-1.5">
+        <lucide-angular name="circle" [size]="8" [class]="simulatorStatus.active ? 'fill-emerald-400' : ''"></lucide-angular>
+        <span>{{ simulatorStatus.active ? 'Continuous Producer RUNNING' : 'Producer STOPPED' }}</span>
       </span>
     </div>
 
     <!-- Alert for simulator actions -->
     <div *ngIf="simActionAlert" class="bg-gray-950 border border-orange-500/50 text-orange-300 text-xs p-3 rounded-lg mb-4 flex justify-between items-center">
-      <span>{{ simActionAlert }}</span>
-      <button (click)="simActionAlert = null" class="text-gray-400 hover:text-white font-bold ml-2">✕</button>
+      <span class="flex items-center gap-2">
+        <lucide-angular [name]="simActionIcon" [size]="14" class="shrink-0"></lucide-angular>
+        {{ simActionAlert }}
+      </span>
+      <button (click)="simActionAlert = null" class="text-gray-400 hover:text-white transition ml-2">
+        <lucide-angular name="x" [size]="14"></lucide-angular>
+      </button>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
@@ -78,15 +91,18 @@
       <div class="space-y-3 md:col-span-2">
         <div class="flex items-center space-x-4">
           <button (click)="toggleSimulation()" [disabled]="isSimLoading" [ngClass]="simulatorStatus.active ? 'bg-rose-600 hover:bg-rose-500' : 'bg-emerald-600 hover:bg-emerald-500'" class="text-white text-xs px-5 py-2.5 rounded-lg font-medium transition shadow flex items-center space-x-2">
-            <span>{{ simulatorStatus.active ? '⏹️ Arrêter la Simulation' : '▶️ Démarrer Simulation Continue' }}</span>
+            <lucide-angular [name]="simulatorStatus.active ? 'square' : 'play'" [size]="14"></lucide-angular>
+            <span>{{ simulatorStatus.active ? 'Arrêter la Simulation' : 'Démarrer Simulation Continue' }}</span>
           </button>
 
-          <button (click)="sendSingleSimulatedEvent()" [disabled]="isSimLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition border border-gray-700">
-            ⚡ Envoyer 1 Evénement
+          <button (click)="sendSingleSimulatedEvent()" [disabled]="isSimLoading" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition border border-gray-700 flex items-center space-x-1.5">
+            <lucide-angular name="zap" [size]="14"></lucide-angular>
+            <span>Envoyer 1 Evénement</span>
           </button>
 
-          <button (click)="sendBatchSimulatedEvents(10)" [disabled]="isSimLoading" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition shadow">
-            🚀 Injecter Lot (10 Events)
+          <button (click)="sendBatchSimulatedEvents(10)" [disabled]="isSimLoading" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2.5 rounded-lg font-medium transition shadow flex items-center space-x-1.5">
+            <lucide-angular name="rocket" [size]="14"></lucide-angular>
+            <span>Injecter Lot (10 Events)</span>
           </button>
         </div>
 
@@ -121,10 +137,12 @@
     <p class="text-sm text-gray-400 mb-4">Gérez les files d'attente en erreur ou relancez manuellement les services de synchronisation.</p>
     <div class="flex space-x-3">
       <button (click)="purgeRedisCache()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg transition font-medium border border-gray-700 flex items-center space-x-2">
-        <span>🧹 Purger le Cache Redis</span>
+        <lucide-angular name="eraser" [size]="14"></lucide-angular>
+        <span>Purger le Cache Redis</span>
       </button>
       <button (click)="openDlqModal()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2.5 rounded-lg transition font-medium border border-gray-700 flex items-center space-x-2">
-        <span>🔍 Inspecter la DLQ Kafka</span>
+        <lucide-angular name="search" [size]="14"></lucide-angular>
+        <span>Inspecter la DLQ Kafka</span>
       </button>
     </div>
   </div>
@@ -135,36 +153,22 @@
   <div class="bg-gray-900 border border-gray-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl animate-fade-in">
     <div class="flex justify-between items-center border-b border-gray-800 p-5 bg-gray-950">
       <div class="flex items-center space-x-2">
-        <span class="text-amber-400 text-lg">⚠️</span>
+        <lucide-angular name="triangle-alert" [size]="20" class="text-amber-400"></lucide-angular>
         <h3 class="text-lg font-bold text-white">Inspecteur Kafka Dead Letter Queue (DLQ)</h3>
       </div>
-      <button (click)="closeDlqModal()" class="text-gray-400 hover:text-white text-xl">✕</button>
+      <button (click)="closeDlqModal()" class="text-gray-400 hover:text-white transition">
+        <lucide-angular name="x" [size]="20"></lucide-angular>
+      </button>
     </div>
 
     <div class="p-6 space-y-4">
       <p class="text-sm text-gray-400">
-        Le topic <code class="text-amber-400">notification-dlq</code> stocke les messages ayant échoué après toutes les tentatives de retry automatisées. Cette fenêtre se rafraîchit automatiquement toutes les 5 secondes tant qu'elle est ouverte.
+        Le topic <code class="text-amber-400">notification-dlq</code> stocke les messages ayant échoué après toutes les tentatives de retry automatisées.
       </p>
 
-      <div *ngIf="dlqLoadError" class="bg-rose-950/50 border border-rose-900 text-rose-300 text-sm rounded-lg px-4 py-3">
-        ⚠️ {{ dlqLoadError }}
-      </div>
-
-      <!-- isDlqLoading only ever drives this on the very first fetch (the
-           background 5s poll doesn't toggle it back on — see loadDlqMessages
-           callers), so this spinner state and the table below never fight
-           each other during a routine auto-refresh. -->
-      <div *ngIf="isDlqLoading && dlqMessages.length === 0 && !dlqLoadError" class="text-center py-8 text-gray-400 bg-gray-950 rounded-xl border border-gray-800">
-        ⏳ Chargement des messages DLQ…
-      </div>
-
-      <!-- Requires !dlqLoadError too: an HTTP failure must never render the
-           same reassuring "vide" banner as a genuinely empty queue — that
-           conflation was the real cause behind "l'inspecteur indique
-           souvent qu'il est vide" (a transient error looked identical to
-           an empty DLQ). -->
-      <div *ngIf="!isDlqLoading && !dlqLoadError && dlqMessages.length === 0" class="text-center py-8 text-emerald-400 bg-gray-950 rounded-xl border border-gray-800">
-        🎉 La Dead Letter Queue est actuellement vide !
+      <div *ngIf="dlqMessages.length === 0" class="text-center py-8 text-emerald-400 bg-gray-950 rounded-xl border border-gray-800 flex flex-col items-center gap-2">
+        <lucide-angular name="party-popper" [size]="22"></lucide-angular>
+        <span>La Dead Letter Queue est actuellement vide !</span>
       </div>
 
       <div *ngIf="dlqMessages.length > 0" class="overflow-x-auto bg-gray-950 rounded-xl border border-gray-800">
@@ -185,9 +189,7 @@
               <td class="p-3"><span class="bg-gray-800 px-2 py-0.5 rounded text-gray-300">{{ msg.channel }}</span></td>
               <td class="p-3 text-rose-400">{{ msg.errorReason }}</td>
               <td class="p-3 text-right">
-                <button (click)="deleteDlqMessage(msg.id)" [disabled]="deletingIds.has(msg.id)" class="text-rose-400 hover:text-rose-300 text-xs underline disabled:opacity-40 disabled:no-underline disabled:cursor-not-allowed">
-                  {{ deletingIds.has(msg.id) ? 'Suppression…' : 'Supprimer' }}
-                </button>
+                <button (click)="deleteDlqMessage(msg.id)" class="text-rose-400 hover:text-rose-300 text-xs underline">Supprimer</button>
               </td>
             </tr>
           </tbody>
@@ -201,8 +203,9 @@
         <button (click)="closeDlqModal()" class="bg-gray-800 hover:bg-gray-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition">
           Fermer
         </button>
-        <button *ngIf="dlqMessages.length > 0" (click)="replayDlqMessages()" [disabled]="isReplaying" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition disabled:opacity-50">
-          {{ isReplaying ? '⏳ Réinjection en cours…' : '🔄 Rejouer Tous les Messages' }}
+        <button *ngIf="dlqMessages.length > 0" (click)="replayDlqMessages()" class="bg-orange-600 hover:bg-orange-500 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+          <lucide-angular name="refresh-cw" [size]="13"></lucide-angular>
+          <span>Rejouer Tous les Messages</span>
         </button>
       </div>
     </div>

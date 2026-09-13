@@ -4,11 +4,13 @@ import com.eventflow.ingestion.dto.NotificationRequest;
 import com.eventflow.ingestion.service.NotificationIngestionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
@@ -30,7 +32,7 @@ public class NotificationController {
 
   @PostMapping("/send-test")
   public ResponseEntity<?> sendTestNotification(@RequestBody Map<String, Object> notificationRequest) {
-    System.out.println("📨 Notification de test reçue : " + notificationRequest);
+    log.info("Notification de test reçue : {}", notificationRequest);
 
     return ResponseEntity.ok(Map.of("status", "SUCCESS", "message", "Notification dispatchée avec succès !"));
   }

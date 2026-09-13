@@ -14,8 +14,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Wait-resume scheduler (architecture plan §2.3 / §5). Every 15s, atomically
- * claims every WAITING execution whose nextWakeAt has passed — via
+ * Wait-resume scheduler. Every 15s, atomically claims every WAITING
+ * execution whose nextWakeAt has passed — via
  * WorkflowExecutionRepository#claimDueWaitingExecutions's native
  * UPDATE...WHERE status='WAITING'...RETURNING id — and republishes each
  * claimed id onto the advance topic.

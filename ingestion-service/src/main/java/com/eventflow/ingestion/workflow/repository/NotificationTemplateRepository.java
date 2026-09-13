@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface NotificationTemplateRepository extends JpaRepository<NotificationTemplate, Long> {
   List<NotificationTemplate> findByChannelIgnoreCase(String channel);
 
-  /** Used by Phase 1's NotificationNodeHandler: a workflow's Notification
-   *  node config can reference a template by name instead of numeric id
-   *  (friendlier to author by hand before the Builder UI exists). */
+  /** Used by NotificationNodeHandler: a workflow's Notification
+   *  node config can reference a template by name instead of numeric id,
+   *  which is friendlier to author by hand. */
   Optional<NotificationTemplate> findByNameIgnoreCase(String name);
 }

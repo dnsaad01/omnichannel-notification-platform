@@ -9,13 +9,13 @@ export interface TemplateOption {
 }
 
 /**
- * NotificationConfigComponent (architecture plan §7). templateId is a real
- * NotificationTemplate id from Phase 0's /api/templates — the dropdown is
- * populated by WorkflowBuilderComponent (fetched once, not per node
- * selection) rather than this component calling TemplateService itself.
- * channel/recipientPath are optional overrides; NotificationNodeHandler
- * (Phase 1) falls back to the template's own channel and to
- * recipientId/userId/email/phone in the execution context when left blank.
+ * NotificationConfigComponent. templateId is a real NotificationTemplate
+ * id from /api/templates — the dropdown is populated by
+ * WorkflowBuilderComponent (fetched once, not per node selection) rather
+ * than this component calling TemplateService itself. channel/
+ * recipientPath are optional overrides; NotificationNodeHandler falls back
+ * to the template's own channel and to recipientId/userId/email/phone in
+ * the execution context when left blank.
  */
 @Component({
   selector: 'app-notification-config',

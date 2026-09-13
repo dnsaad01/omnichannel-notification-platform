@@ -17,10 +17,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * Real persistence for reusable notification templates, replacing the old
- * TemplateController stub that only echoed what it received. A workflow's
- * Notification node references one of these by id — it never embeds message
- * content directly (see the architecture plan, section 3).
+ * Persistence for reusable notification templates. A workflow's
+ * Notification node references one of these by id — it never embeds
+ * message content directly.
  */
 @Data
 @Entity

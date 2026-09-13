@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { WorkflowExecutionService } from '../../services/workflow-execution.service';
 import { WorkflowService } from '../../services/workflow.service';
 import { WorkflowExecutionResponse } from '../../models/workflow.model';
@@ -11,16 +12,16 @@ const POLL_INTERVAL_MS = 5000;
 
 /**
  * Read-only execution detail — backed by GET /api/workflow-executions/{id}
- * (WorkflowExecutionController, Phase 1), which is the only endpoint that
- * returns the full Timeline (logs). Auto-refreshes every 5s while the
- * execution is still RUNNING/WAITING/ADVANCING, so a WAIT node resolving in
- * the background (WorkflowWaitScheduler) shows up here without a manual
- * refresh — useful for actually watching the engine work during a demo.
+ * (WorkflowExecutionController), which is the only endpoint that returns
+ * the full Timeline (logs). Auto-refreshes every 5s while the execution is
+ * still RUNNING/WAITING/ADVANCING, so a WAIT node resolving in the
+ * background (WorkflowWaitScheduler) shows up here without a manual
+ * refresh.
  */
 @Component({
   selector: 'app-workflow-execution-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, LucideAngularModule],
   templateUrl: './workflow-execution-detail.component.html'
 })
 export class WorkflowExecutionDetailComponent implements OnInit, OnDestroy {

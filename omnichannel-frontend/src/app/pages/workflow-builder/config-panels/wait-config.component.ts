@@ -2,8 +2,8 @@ import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-/** WaitConfigComponent (architecture plan §7) — matches WaitNodeHandler's
- *  config shape exactly: { duration: number, unit: ChronoUnit name }. */
+/** WaitConfigComponent — matches WaitNodeHandler's config shape exactly:
+ *  { duration: number, unit: ChronoUnit name }. */
 @Component({
   selector: 'app-wait-config',
   standalone: true,

@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 
 /**
  * Read-only access to WorkflowExecutions for the Exécutions list/detail
- * pages (Phase 2 frontend) — and, for now, the only way to actually observe
- * Phase 1's engine working end-to-end via curl.
+ * pages, and the only way to observe the engine working end-to-end via
+ * curl.
  */
 @Service
 @RequiredArgsConstructor

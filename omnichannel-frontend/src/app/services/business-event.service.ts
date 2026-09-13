@@ -14,18 +14,17 @@ export interface BusinessEventResponse {
 }
 
 /**
- * Phase 4 — Kafka Event Simulator page's backend client.
+ * Kafka Event Simulator page's backend client.
  *
  * Deliberately separate from services/simulator.service.ts: that one hits
  * /api/v1/simulator (low-level, fires raw per-channel NotificationEvents
  * straight at a channel topic, used by the Dashboard's "Envoi Simulé"
  * button). This one hits /api/business-events/publish
- * (BusinessEventController, Phase 1) — a *business* event like
- * CART_ABANDONED that WorkflowTriggerConsumer matches against ACTIVE
- * workflows' trigger config and, on a match, spawns a real
- * WorkflowExecution. Two different layers of the same platform; kept as
- * two different services/pages so neither name shadows what the other
- * actually does.
+ * (BusinessEventController) — a *business* event like CART_ABANDONED that
+ * WorkflowTriggerConsumer matches against ACTIVE workflows' trigger config
+ * and, on a match, spawns a real WorkflowExecution. Two different layers
+ * of the same platform; kept as two different services/pages so neither
+ * name shadows what the other actually does.
  */
 @Injectable({
   providedIn: 'root'

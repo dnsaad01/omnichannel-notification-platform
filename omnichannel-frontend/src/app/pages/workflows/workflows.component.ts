@@ -1,20 +1,20 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 import { WorkflowService } from '../../services/workflow.service';
 import { WorkflowResponse } from '../../models/workflow.model';
 
 /**
- * Workflows list — backed by GET /api/workflows (WorkflowController,
- * Phase 1). Now that Phase 3's Builder exists, this page also drives
- * create/edit navigation and the activate/deactivate/duplicate lifecycle
- * actions (the WorkflowService methods for these were already added in
- * Phase 2, ahead of there being a UI that could call them).
+ * Workflows list — backed by GET /api/workflows (WorkflowController).
+ * This page also drives create/edit navigation and the
+ * activate/deactivate/duplicate lifecycle actions via the corresponding
+ * WorkflowService methods.
  */
 @Component({
   selector: 'app-workflows',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, LucideAngularModule],
   templateUrl: './workflows.component.html'
 })
 export class WorkflowsComponent implements OnInit {
@@ -25,6 +25,7 @@ export class WorkflowsComponent implements OnInit {
   isLoading = false;
   errorMessage: string | null = null;
   toastMessage: string | null = null;
+  toastIcon: string = 'circle-check-big';
 
   ngOnInit() {
     this.fetchWorkflows();
@@ -62,7 +63,7 @@ export class WorkflowsComponent implements OnInit {
   activate(workflow: WorkflowResponse) {
     this.workflowService.activateWorkflow(workflow.id).subscribe({
       next: () => {
-        this.showToast(`✅ Workflow "${workflow.name}" activé.`);
+        this.showToast(`Workflow "${workflow.name}" activé.`, 'circle-check-big');
         this.fetchWorkflows();
       },
       error: (err) => {
@@ -74,7 +75,7 @@ export class WorkflowsComponent implements OnInit {
   deactivate(workflow: WorkflowResponse) {
     this.workflowService.deactivateWorkflow(workflow.id).subscribe({
       next: () => {
-        this.showToast(`⏸️ Workflow "${workflow.name}" désactivé.`);
+        this.showToast(`Workflow "${workflow.name}" désactivé.`, 'pause');
         this.fetchWorkflows();
       },
       error: (err) => {
@@ -86,7 +87,7 @@ export class WorkflowsComponent implements OnInit {
   duplicate(workflow: WorkflowResponse) {
     this.workflowService.duplicateWorkflow(workflow.id).subscribe({
       next: (copy) => {
-        this.showToast(`📄 Copie "${copy.name}" créée.`);
+        this.showToast(`Copie "${copy.name}" créée.`, 'file-text');
         this.fetchWorkflows();
       },
       error: (err) => {
@@ -95,8 +96,9 @@ export class WorkflowsComponent implements OnInit {
     });
   }
 
-  private showToast(msg: string) {
+  private showToast(msg: string, icon: string = 'circle-check-big') {
     this.toastMessage = msg;
+    this.toastIcon = icon;
     setTimeout(() => {
       if (this.toastMessage === msg) {
         this.toastMessage = null;

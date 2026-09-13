@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Executes a GATEWAY (conditional branch) node. Not a suspend point — it
  * evaluates immediately against whatever the context holds *right now* and
- * continues the loop down the "yes" or "no" edge (plan §5). If a workflow
+ * continues the loop down the "yes" or "no" edge. If a workflow
  * needs to branch on something that only becomes true later (e.g.
  * email.opened), a WAIT node upstream of the GATEWAY is what creates that
  * delay — the GATEWAY itself never waits.

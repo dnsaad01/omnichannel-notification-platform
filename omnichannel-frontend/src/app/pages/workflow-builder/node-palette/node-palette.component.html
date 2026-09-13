@@ -7,7 +7,7 @@
         draggable="true"
         (dragstart)="onDragStart($event, item.type)"
         class="flex items-center space-x-2 bg-gray-950 border border-gray-800 rounded-lg px-3 py-2.5 cursor-grab active:cursor-grabbing hover:border-orange-700 transition select-none">
-        <span class="text-lg">{{ item.icon }}</span>
+        <lucide-angular [name]="item.icon" [size]="18" class="text-orange-400 shrink-0"></lucide-angular>
         <span class="text-sm text-gray-200">{{ item.label }}</span>
       </div>
     </div>

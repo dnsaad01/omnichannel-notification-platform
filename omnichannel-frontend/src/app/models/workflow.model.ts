@@ -1,7 +1,7 @@
 /**
  * Mirrors the backend's workflow.dto classes exactly (ingestion-service,
  * com.eventflow.ingestion.workflow.dto) — see WorkflowResponse,
- * WorkflowExecutionResponse, WorkflowExecutionLogResponse (Phase 0/1).
+ * WorkflowExecutionResponse, WorkflowExecutionLogResponse.
  */
 
 export type WorkflowStatus = 'DRAFT' | 'ACTIVE' | 'DISABLED' | 'ARCHIVED';
